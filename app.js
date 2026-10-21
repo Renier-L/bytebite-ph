@@ -324,7 +324,7 @@ let __staticDBCache = null;
 
 async function getStaticDB() {
   if (__staticDBCache) return __staticDBCache;
-  const saved = localStorage.getItem('bb_static_db_v3');
+  const saved = localStorage.getItem('bb_static_db_v4');
   if (saved) {
     try {
       __staticDBCache = JSON.parse(saved);
@@ -333,14 +333,14 @@ async function getStaticDB() {
       }
     } catch {}
   }
-  const r = await fetch('./data/db.json?v=14');
+  const r = await fetch('./data/db.json?v=16');
   __staticDBCache = await r.json();
   if (Array.isArray(__staticDBCache.meals)) {
     __staticDBCache.meals.forEach(m => { if (m && m.image) m.image = relUrl(m.image); });
   }
   if (Array.isArray(__staticDBCache.reels)) {
     __staticDBCache.reels.forEach(rl => {
-      if (rl && rl.video) rl.video = relUrl(rl.video);
+      if (rl && rl.video) rl.video = relUrl(rl.video).replace(/\.webm$/i, '.mp4');
       if (rl && rl.poster) rl.poster = relUrl(rl.poster);
     });
   }
@@ -630,7 +630,7 @@ async function boot() {
   }
   if (Array.isArray(state.reels)) {
     state.reels.forEach(r => {
-      if (r && r.video) r.video = relUrl(r.video);
+      if (r && r.video) r.video = relUrl(r.video).replace(/\.webm$/i, '.mp4');
       if (r && r.poster) r.poster = relUrl(r.poster);
     });
     if (state.reels.length > 1) {
@@ -1462,12 +1462,17 @@ function reelCard(r, i) {
   const meal = state.meals.find(m => m.id === r.mealId) || state.meals[0];
   const saved = state.user && (state.user.savedReels || []).includes(r.id);
   const poster = relUrl(r.poster || (meal ? mealImage(meal) : './assets/meals/tofu-bowl.jpg'));
-  const videoSrc = relUrl(r.video || './assets/videos/tofu-bowl.webm');
+  const rawVid = relUrl(r.video || './assets/videos/tofu-bowl.mp4');
+  const mp4Src = rawVid.replace(/\.(webm|mp4)$/i, '.mp4');
+  const webmSrc = rawVid.replace(/\.(webm|mp4)$/i, '.webm');
   const tier = meal ? getMealTier(meal) : 'Low';
 
   return `
     <article class="reel" data-reel="${esc(r.id)}" style="background-image:url('${esc(poster)}'); background-size:cover; background-position:center;">
-      <video ${i === 0 ? 'autoplay' : ''} ${state.reelsSoundOn ? '' : 'muted'} loop playsinline preload="metadata" poster="${esc(poster)}" src="${esc(videoSrc)}"></video>
+      <video ${i === 0 ? 'autoplay' : ''} ${state.reelsSoundOn ? '' : 'muted'} loop playsinline preload="metadata" poster="${esc(poster)}">
+        <source src="${esc(mp4Src)}" type="video/mp4">
+        <source src="${esc(webmSrc)}" type="video/webm">
+      </video>
       <div class="reel-shade"></div>
       <div class="pause-hint">Video ${i + 1} of ${state.reels.length} · Tap to play/pause</div>
       <button class="sound-btn ${state.reelsSoundOn ? 'unmuted' : ''}" onclick="toggleSound(event, this, '${r.id}')">
