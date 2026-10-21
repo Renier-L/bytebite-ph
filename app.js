@@ -163,7 +163,7 @@ const REAL_WORLD_FOOD_PROFILES = [
     potassiumMg: 310,
     healthScore: 42,
     kidneyRisk: 'HIGH',
-    image: './assets/meals/inasal-plate.jpg',
+    image: './assets/meals/grilled-chicken.jpg',
     swapMealId: 'm3',
     ingredients: [
       { item: 'Brined & breaded deep-fried chicken', amount: '180g', cost: '₱95' },
@@ -187,7 +187,7 @@ const REAL_WORLD_FOOD_PROFILES = [
     potassiumMg: 210,
     healthScore: 38,
     kidneyRisk: 'HIGH',
-    image: './assets/meals/adobo-bowl.jpg',
+    image: './assets/meals/eggplant-adobo.jpg',
     swapMealId: 'm4',
     ingredients: [
       { item: 'Cured/canned meat with sodium nitrite', amount: '120g', cost: '₱45' },
@@ -211,7 +211,7 @@ const REAL_WORLD_FOOD_PROFILES = [
     potassiumMg: 290,
     healthScore: 39,
     kidneyRisk: 'HIGH',
-    image: './assets/meals/chicken-wrap.jpg',
+    image: './assets/meals/tuna-wrap.jpg',
     swapMealId: 'm10',
     ingredients: [
       { item: 'Processed patty / cured toppings & cheese', amount: '150g', cost: '₱95' },
@@ -235,7 +235,7 @@ const REAL_WORLD_FOOD_PROFILES = [
     potassiumMg: 480,
     healthScore: 96,
     kidneyRisk: 'SAFE',
-    image: './assets/meals/banana-oat-pancake.jpg',
+    image: './assets/meals/oat-cup.jpg',
     swapMealId: 'm11',
     ingredients: [
       { item: 'Fresh ripe Philippine Saba banana or papaya', amount: '180g', cost: '₱28' },
@@ -267,10 +267,13 @@ function cleanMealDesc(m) {
 }
 
 function relUrl(p = '') {
-  const s = String(p || '');
+  const s = String(p || '').trim();
   if (!s) return './assets/meals/tofu-bowl.jpg';
-  if (s.startsWith('./assets/') || s.startsWith('/media/')) return '.' + s;
-  return s;
+  if (s.startsWith('http://') || s.startsWith('https://') || s.startsWith('data:') || s.startsWith('blob:')) return s;
+  if (s.startsWith('./')) return s;
+  if (s.startsWith('../')) return './' + s.replace(/^(\.\.\/)+/, '');
+  if (s.startsWith('/')) return '.' + s;
+  return './' + s;
 }
 
 function mealImage(m) {
@@ -321,7 +324,7 @@ let __staticDBCache = null;
 
 async function getStaticDB() {
   if (__staticDBCache) return __staticDBCache;
-  const saved = localStorage.getItem('bb_static_db_v1');
+  const saved = localStorage.getItem('bb_static_db_v3');
   if (saved) {
     try {
       __staticDBCache = JSON.parse(saved);
@@ -330,8 +333,17 @@ async function getStaticDB() {
       }
     } catch {}
   }
-  const r = await fetch('./data/db.json');
+  const r = await fetch('./data/db.json?v=14');
   __staticDBCache = await r.json();
+  if (Array.isArray(__staticDBCache.meals)) {
+    __staticDBCache.meals.forEach(m => { if (m && m.image) m.image = relUrl(m.image); });
+  }
+  if (Array.isArray(__staticDBCache.reels)) {
+    __staticDBCache.reels.forEach(rl => {
+      if (rl && rl.video) rl.video = relUrl(rl.video);
+      if (rl && rl.poster) rl.poster = relUrl(rl.poster);
+    });
+  }
   return __staticDBCache;
 }
 
@@ -957,7 +969,7 @@ function home() {
             </div>
           </div>
           <div class="hero-featured-dish" onclick="openRecipe('${topReelMeal.id}')">
-            <img src="${esc(mealImage(topReelMeal))}" alt="${esc(cleanMealName(topReelMeal.name))}" />
+            <img src="${esc(mealImage(topReelMeal))}" alt="${esc(cleanMealName(topReelMeal.name))}" onerror="this.onerror=null;this.src='./assets/meals/tofu-bowl.jpg'" />
             <div>
               <b style="display:block; font-size:13.5px;">${esc(cleanMealName(topReelMeal.name))}</b>
               <span style="color:var(--brand-bright); font-weight:700; font-size:12.5px;">${money(topReelMeal.price)} · ${topReelMeal.sodiumMg || 290}mg Sodium</span>
@@ -1188,12 +1200,12 @@ function kidneyPage() {
       badPrice: '₱36',
       badSodium: '1,840mg Na',
       badNote: '92% of daily sodium limit in one sitting; linked to hypertension & CKD.',
-      goodMealId: 'm1',
-      goodName: 'Ginisang Monggo with Malunggay & Tinapa Flakes',
-      goodPrice: '₱48 (Low Tier)',
+      goodMealId: 'm4',
+      goodName: 'Ginisang Monggo with Malunggay & Red Rice',
+      goodPrice: '₱50 (Low Tier)',
       goodSodium: '290mg Na',
       sodiumSaved: 'Saves 1,550mg Sodium',
-      goodImage: './assets/meals/monggo-bowl.jpg',
+      goodImage: './assets/meals/munggo-bowl.jpg',
       goodNote: 'High plant protein, folate, and iron simmered with fresh garlic, tomato, and malunggay leaves.'
     },
     {
@@ -1201,12 +1213,12 @@ function kidneyPage() {
       badPrice: '₱55',
       badSodium: '1,380mg Na',
       badNote: 'Loaded with curing salts, sodium nitrite, and saturated fat.',
-      goodMealId: 'm6',
+      goodMealId: 'm10',
       goodName: 'Steamed Tilapia with Ginger, Scallions & Pechay',
       goodPrice: '₱72 (Low Tier)',
       goodSodium: '280mg Na',
       sodiumSaved: 'Saves 1,100mg Sodium',
-      goodImage: './assets/meals/tilapia-plate.jpg',
+      goodImage: './assets/meals/seafood-rice.jpg',
       goodNote: 'Fresh fish protein aromatics steamed with luya (ginger), scallions, and crisp pechay greens.'
     },
     {
@@ -1219,7 +1231,7 @@ function kidneyPage() {
       goodPrice: '₱98 (Medium Tier)',
       goodSodium: '410mg Na',
       sodiumSaved: 'Saves 1,510mg Na & ₱67',
-      goodImage: './assets/meals/inasal-plate.jpg',
+      goodImage: './assets/meals/grilled-chicken.jpg',
       goodNote: 'Marinated in natural calamansi, lemongrass (tanglad), and garlic with zero MSG gravy.'
     },
     {
@@ -1228,12 +1240,12 @@ function kidneyPage() {
       badSodium: '1,760mg Na',
       badNote: 'High uric acid, saturated fat, and heavy seasoning salt.',
       goodMealId: 'm2',
-      goodName: 'Crispy Garlic Tokwa & Kangkong Rice Bowl',
-      goodPrice: '₱52 (Low Tier)',
+      goodName: 'Sesame Tofu, Broccoli & Edamame Rice Bowl',
+      goodPrice: '₱85 (Medium Tier)',
       goodSodium: '310mg Na',
-      sodiumSaved: 'Saves 1,450mg Na & ₱83',
+      sodiumSaved: 'Saves 1,450mg Na & ₱50',
       goodImage: './assets/meals/tofu-bowl.jpg',
-      goodNote: 'Pan-seared firm tofu and iron-rich kangkong tossed in a light calamansi-garlic glaze.'
+      goodNote: 'Pan-seared firm tofu and iron-rich greens tossed in a light calamansi-garlic glaze.'
     }
   ];
 
@@ -1446,19 +1458,13 @@ function shuffleReelsFeed() {
 function reelCard(r, i) {
   const meal = state.meals.find(m => m.id === r.mealId) || state.meals[0];
   const saved = state.user && (state.user.savedReels || []).includes(r.id);
-  const poster = r.poster || (meal ? mealImage(meal) : './assets/meals/tofu-bowl.jpg');
+  const poster = relUrl(r.poster || (meal ? mealImage(meal) : './assets/meals/tofu-bowl.jpg'));
+  const videoSrc = relUrl(r.video || './assets/videos/tofu-bowl.webm');
   const tier = meal ? getMealTier(meal) : 'Low';
 
   return `
-    <article class="reel" data-reel="${esc(r.id)}">
-      <video ${i === 0 ? 'autoplay' : ''} ${state.reelsSoundOn ? '' : 'muted'} loop playsinline preload="metadata" poster="${esc(poster)}" src="${esc(r.video)}"></video>
-      <div class="video-fallback">
-        <div>
-          <b>Video could not be decoded.</b><br>
-          <span>Upload an H.264 MP4 or WebM video file.</span><br>
-          <a class="btn btn-primary mini" style="margin-top: 12px;" href="${esc(r.video)}" target="_blank" rel="noopener">Download File</a>
-        </div>
-      </div>
+    <article class="reel" data-reel="${esc(r.id)}" style="background-image:url('${esc(poster)}'); background-size:cover; background-position:center;">
+      <video ${i === 0 ? 'autoplay' : ''} ${state.reelsSoundOn ? '' : 'muted'} loop playsinline preload="metadata" poster="${esc(poster)}" src="${esc(videoSrc)}"></video>
       <div class="reel-shade"></div>
       <div class="pause-hint">Video ${i + 1} of ${state.reels.length} · Tap to play/pause</div>
       <button class="sound-btn ${state.reelsSoundOn ? 'unmuted' : ''}" onclick="toggleSound(event, this, '${r.id}')">
@@ -1657,7 +1663,8 @@ function setupReels() {
     v.addEventListener('canplay', ok);
     v.addEventListener('playing', ok);
     v.addEventListener('error', () => {
-      card?.classList.add('video-error');
+      v.style.opacity = '0';
+      card?.classList.remove('video-error');
     });
     if (v.readyState >= 1) ok();
   });
@@ -1861,7 +1868,7 @@ function scannerView() {
             <div class="sample-strip">
               ${samples.map(s => `
                 <button type="button" class="sample-btn ${!state.customScanData && !state.customScanImage && item.id === s.id ? 'active' : ''}" onclick="selectScanSample('${s.id}')">
-                  <img src="${esc(mealImage(s))}" alt="" />
+                  <img src="${esc(mealImage(s))}" alt="" onerror="this.onerror=null;this.src='./assets/meals/tofu-bowl.jpg'" />
                   <div>
                     <b style="display:block; font-size:11.5px; line-height:1.2;">${esc(cleanMealName(s.name).slice(0, 20))}</b>
                     <span style="color: var(--brand-bright); font-size: 11px; font-weight: 700;">${money(s.price)} · ${s.sodiumMg || 310}mg Na</span>
@@ -3654,6 +3661,7 @@ async function uploadReel(e) {
 
 function connectEvents() {
   if (window.__bbSSE) return;
+  if (location.hostname.endsWith('github.io') || location.hostname.endsWith('vercel.app') || location.hostname.endsWith('netlify.app')) return;
   const es = new EventSource('/api/events');
   window.__bbSSE = es;
   es.addEventListener('reel:like', e => {
