@@ -497,22 +497,26 @@ async function api(path, opts = {}) {
 }
 
 async function openHostingModal() {
+  const githubPagesUrl = 'https://renier-l.github.io/bytebite-ph/';
   let info = {
-    pcUrl: state.app?.pcUrl || location.origin,
+    pcUrl: state.app?.pcUrl || githubPagesUrl,
     lanUrls: state.app?.lanUrls || [],
-    publicUrl: state.app?.publicUrl || ''
+    publicUrl: githubPagesUrl
   };
   try {
-    info = await api('/hosting-info');
-    if (state.app) Object.assign(state.app, info);
+    const srvInfo = await api('/hosting-info');
+    if (srvInfo) {
+      info.lanUrls = srvInfo.lanUrls || [];
+      info.pcUrl = srvInfo.pcUrl || githubPagesUrl;
+    }
   } catch {}
 
-  const primaryMobileUrl = info.publicUrl || info.lanUrls[0] || location.origin;
+  const primaryMobileUrl = githubPagesUrl;
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(primaryMobileUrl)}`;
 
   modal(`
     <p class="muted" style="margin-top:0;">
-      Scan the QR code below with your smartphone camera or open the cloud link to access ByteBite PH on mobile or desktop:
+      ByteBite PH is permanently hosted on <b>GitHub Cloud Hosting</b>. Scan the QR code below with your smartphone camera or open the cloud link on any PC or mobile device:
     </p>
 
     <div style="display:grid; grid-template-columns: 180px 1fr; gap:16px; align-items:center; padding:14px; border-radius:12px; background:var(--bg); border:1px solid var(--line); margin-bottom:14px;">
@@ -521,25 +525,18 @@ async function openHostingModal() {
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div>
-          <div class="eyebrow">Public HTTPS Cloud Link (Mobile &amp; Desktop)</div>
-          <div style="font-weight:700; font-size:13.5px; word-break:break-all; color:var(--brand-bright); margin-top:3px;">
-            <a href="${esc(primaryMobileUrl)}" target="_blank" rel="noopener">${esc(primaryMobileUrl)}</a>
+          <div class="eyebrow">Permanent Cloud Hosting URL (GitHub Pages)</div>
+          <div style="font-weight:700; font-size:14px; word-break:break-all; color:var(--brand-bright); margin-top:3px;">
+            <a href="${esc(githubPagesUrl)}" target="_blank" rel="noopener">${esc(githubPagesUrl)}</a>
           </div>
-          <small class="muted">Supports live camera scanning and GPS kitchen location on any device.</small>
+          <small class="muted">24/7 permanent HTTPS cloud link — works on any mobile phone, tablet, or PC anywhere.</small>
         </div>
 
-        ${info.lanUrls.length ? `
-          <div>
-            <div class="eyebrow">Local Wi-Fi / Hotspot URL</div>
-            <div style="font-weight:700; font-size:13px; color:var(--text);">
-              ${info.lanUrls.map(u => `<div><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></div>`).join('')}
-            </div>
-          </div>
-        ` : ''}
-
         <div>
-          <div class="eyebrow">Desktop Browser URL</div>
-          <div style="font-weight:700; font-size:13px;"><a href="${esc(info.pcUrl)}" target="_blank" rel="noopener">${esc(info.pcUrl)}</a></div>
+          <div class="eyebrow">GitHub Repository</div>
+          <div style="font-weight:700; font-size:13px;">
+            <a href="https://github.com/Renier-L/bytebite-ph" target="_blank" rel="noopener">https://github.com/Renier-L/bytebite-ph</a>
+          </div>
         </div>
       </div>
     </div>
@@ -547,7 +544,7 @@ async function openHostingModal() {
     <div style="display:flex; gap:8px; justify-content:flex-end;">
       <button class="btn btn-secondary mini" onclick="closeModal()">Close</button>
     </div>
-  `, 'Mobile QR & Cloud Access');
+  `, 'Cloud Hosting & Mobile QR');
 }
 
 function moduleGuide(moduleName, steps = []) {
