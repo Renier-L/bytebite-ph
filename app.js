@@ -38,6 +38,23 @@ function applyTheme() {
   document.body.classList.toggle('dark-theme', !!state.darkMode);
 }
 
+function syncDeviceViewport() {
+  const w = window.innerWidth || document.documentElement.clientWidth || 1024;
+  const h = window.innerHeight || document.documentElement.clientHeight || 768;
+  const isTouchMobile = w <= 860 || (/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '') && w <= 1024);
+  document.body.classList.toggle('device-mobile', isTouchMobile);
+  document.body.classList.toggle('device-pc', !isTouchMobile);
+  document.documentElement.style.setProperty('--app-vh', `${h}px`);
+  if (state.leafletMap) {
+    setTimeout(() => {
+      try { state.leafletMap.invalidateSize(); } catch {}
+    }, 120);
+  }
+}
+
+window.addEventListener('resize', syncDeviceViewport);
+window.addEventListener('orientationchange', () => setTimeout(syncDeviceViewport, 150));
+
 function toggleTheme() {
   state.darkMode = !state.darkMode;
   localStorage.setItem('bb_dark_mode', state.darkMode ? '1' : '0');
@@ -538,9 +555,9 @@ async function openHostingModal() {
       ByteBite PH is permanently hosted on <b>GitHub Cloud Hosting</b>. Scan the QR code below with your smartphone camera or open the cloud link on any PC or mobile device:
     </p>
 
-    <div style="display:grid; grid-template-columns: 180px 1fr; gap:16px; align-items:center; padding:14px; border-radius:12px; background:var(--bg); border:1px solid var(--line); margin-bottom:14px;">
-      <div style="background:#fff; padding:8px; border-radius:10px; display:grid; place-items:center;">
-        <img src="${esc(qrSrc)}" alt="Mobile QR Code" style="width:160px; height:160px; display:block;" />
+    <div class="qr-modal-grid">
+      <div style="background:#fff; padding:8px; border-radius:10px; display:grid; place-items:center; margin:0 auto;">
+        <img src="${esc(qrSrc)}" alt="Mobile QR Code" style="width:150px; height:150px; display:block;" />
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div>
@@ -548,12 +565,12 @@ async function openHostingModal() {
           <div style="font-weight:700; font-size:14px; word-break:break-all; color:var(--brand-bright); margin-top:3px;">
             <a href="${esc(githubPagesUrl)}" target="_blank" rel="noopener">${esc(githubPagesUrl)}</a>
           </div>
-          <small class="muted">24/7 permanent HTTPS cloud link — works on any mobile phone, tablet, or PC anywhere.</small>
+          <small class="muted">24/7 permanent HTTPS cloud link — automatically fits PC &amp; Mobile screens.</small>
         </div>
 
         <div>
           <div class="eyebrow">GitHub Repository</div>
-          <div style="font-weight:700; font-size:13px;">
+          <div style="font-weight:700; font-size:13px; word-break:break-all;">
             <a href="https://github.com/Renier-L/bytebite-ph" target="_blank" rel="noopener">https://github.com/Renier-L/bytebite-ph</a>
           </div>
         </div>
@@ -593,6 +610,7 @@ function moduleGuide(moduleName, steps = []) {
 
 async function boot() {
   applyTheme();
+  syncDeviceViewport();
   const d = await api('/bootstrap');
   Object.assign(state, d);
   if (Array.isArray(state.meals)) {
@@ -668,24 +686,16 @@ function shell(inner) {
             `).join('')}
           </nav>
         </div>
-        <div class="side-note">
-          <div class="side-note-header">
-            <span class="side-dot"></span>
-            <span>Philippine Price Tiers</span>
-          </div>
-          <div><b>Low:</b> ₱45–₱75 · <b>Med:</b> ₱80–₱135 · <b>High:</b> ₱140–₱235</div>
-          <div style="display:flex; gap:6px; margin-top:8px;">
-            <a class="btn btn-secondary mini" style="flex:1; font-size:11px; padding:5px 8px;" href="#/guide">App Guide</a>
-            <button type="button" class="btn btn-secondary mini" style="flex:1; font-size:11px; padding:5px 8px;" onclick="openHostingModal()">Mobile QR</button>
-          </div>
-        </div>
       </aside>
 
       <main class="content">
         <header class="topbar">
-          <div class="top-title">
-            <h1>${esc(title)}</h1>
-            <p>${esc(sub)}</p>
+          <div class="top-title-wrap">
+            <a class="mobile-brand-badge" href="#/home" title="ByteBite PH Home">B</a>
+            <div class="top-title">
+              <h1>${esc(title)}</h1>
+              <p>${esc(sub)}</p>
+            </div>
           </div>
           <div class="topbar-right">
             <a class="budget-pill" href="#/kidney" style="text-decoration:none;" title="Open Kidney & Sodium Shield">
@@ -696,7 +706,6 @@ function shell(inner) {
               <span>Daily Spend:</span>
               <strong>${money(spentToday)} / ${money(dailyBudget)}</strong>
             </a>
-            <button class="btn btn-secondary mini" onclick="toggleTheme()" title="Switch between Clinical Daylight and Dark Studio Mode">${state.darkMode ? '☀️ Light' : '🌙 Dark'}</button>
             <a class="btn btn-secondary mini" href="#/guide">How It Works</a>
             ${state.user
               ? `<button class="btn btn-secondary mini" onclick="goProfile()">${esc(state.user.name.split(' ')[0])}</button>`
@@ -711,9 +720,10 @@ function shell(inner) {
           ['home', 'home', 'Home'],
           ['generator', 'generator', 'Meals'],
           ['scanner', 'scanner', 'Scanner'],
+          ['reels', 'reels', 'Reels'],
           ['kidney', 'kidney', 'Kidney'],
           ['locator', 'locator', 'Map'],
-          ['guide', 'guide', 'Guide']
+          ['premium', 'premium', 'Pro']
         ].map(([k, ico, l]) => `
           <a class="${r === k ? 'active' : ''}" href="#/${k}">
             <span class="nav-icon">${icons[ico]}</span>
@@ -1392,123 +1402,26 @@ function reels() {
   const list = isSavedTab
     ? state.reels.filter(r => (state.user?.savedReels || []).includes(r.id))
     : state.reels;
-  const activeReel = list.find(r => r.id === state.activeReelId) || list[0] || state.reels[0];
-  const activeMeal = activeReel ? (state.meals.find(m => m.id === activeReel.mealId) || state.meals[0]) : state.meals[0];
-  const activeIngs = activeMeal?.ingredients || [];
-  const activeSteps = activeMeal?.steps || [];
 
   return shell(`
-    <section class="page">
-      ${moduleGuide('Cooking Reels & Audio Guides', [
-        ['1. Watch or Select Any Video', 'Scroll the vertical player on the left or click any of the 12 videos in the Culinary Directory on the right.'],
-        ['2. Enable Voice & Kitchen Audio', 'Tap "Tap for Audio" on the video player to hear realistic kitchen sizzle and step-by-step recipe voice narration.'],
-        ['3. Cook or Log the Dish', 'Review the itemized Philippine palengke ingredient breakdown on the right or click "+ Log Meal" to record it.']
-      ])}
-
-      <div class="reels-header" style="max-width:none; margin:0;">
+    <section class="reels-page">
+      <div class="reels-header">
         <div class="reels-tabs">
           <a class="reels-tab ${!isSavedTab ? 'active' : ''}" href="#/reels">All Cooking Reels (${state.reels.length})</a>
           <a class="reels-tab ${isSavedTab ? 'active' : ''}" href="#/saved">Saved (${(state.user?.savedReels || []).length})</a>
         </div>
-        <div style="display: flex; gap: 8px; flex-wrap:wrap;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn btn-secondary mini" onclick="shuffleReelsFeed()" title="Load a different video order">↻ Shuffle Feed</button>
           <button class="btn btn-primary mini" onclick="openReelUpload()">+ Upload Video</button>
         </div>
       </div>
 
-      <div class="reels-studio-grid">
-        <div class="reels-stage">
-          <div class="reels-wrap" id="reelsWrap">
-            ${list.length
-              ? list.map((r, i) => reelCard(r, i)).join('')
-              : `<div class="reel"><div class="empty" style="max-width: 300px;">No saved videos yet. Tap ☆ on any cooking reel to bookmark it.</div></div>`
-            }
-          </div>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:18px;">
-          <div class="card" id="activeReelRecipePanel">
-            ${activeMeal ? `
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
-                <div>
-                  <div class="eyebrow">Active Reel Recipe &amp; Palengke Cost Breakdown</div>
-                  <h3 style="margin:4px 0 4px; font-size:20px;">${esc(cleanMealName(activeMeal.name))}</h3>
-                  <p class="muted" style="margin:0; font-size:13px;">${esc(activeReel?.caption || cleanMealDesc(activeMeal))}</p>
-                </div>
-                <div style="text-align:right;">
-                  <div class="price" style="font-size:22px;">${money(activeMeal.price)}</div>
-                  <span class="tier-badge tier-${esc(getMealTier(activeMeal))}">${esc(getMealTier(activeMeal))} Tier</span>
-                </div>
-              </div>
-
-              <div class="macro-row" style="grid-template-columns:repeat(4,1fr); margin:14px 0;">
-                <div class="macro-cell"><b>${activeMeal.calories} kcal</b><span>Calories</span></div>
-                <div class="macro-cell"><b>${activeMeal.protein}g</b><span>Protein</span></div>
-                <div class="macro-cell"><b style="color:var(--brand-bright);">${activeMeal.sodiumMg || 310}mg</b><span>Sodium (Safe)</span></div>
-                <div class="macro-cell"><b>${esc(activeMeal.cookTime || '12 mins')}</b><span>Cook Time</span></div>
-              </div>
-
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                <div>
-                  <h4 style="margin:0 0 6px; font-size:13.5px; color:var(--brand-bright);">Palengke Ingredients</h4>
-                  <table class="ing-table" style="margin:0;">
-                    <tbody>
-                      ${activeIngs.map(ing => `
-                        <tr>
-                          <td><b>${esc(ing.item)}</b></td>
-                          <td class="muted">${esc(ing.amount)}</td>
-                          <td style="text-align:right; color:var(--brand-bright); font-weight:700;">${esc(ing.cost)}</td>
-                        </tr>
-                      `).join('')}
-                    </tbody>
-                  </table>
-                </div>
-                <div>
-                  <h4 style="margin:0 0 6px; font-size:13.5px; color:var(--brand-bright);">Quick Cooking Steps</h4>
-                  <div class="step-list" style="margin:0;">
-                    ${activeSteps.map((st, idx) => `
-                      <div class="step-item" style="padding:8px 10px; font-size:12px;">
-                        <div class="step-num" style="width:20px; height:20px; font-size:11px;">${idx + 1}</div>
-                        <div>${esc(st)}</div>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-              </div>
-
-              <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px; padding-top:12px; border-top:1px solid var(--line);">
-                <button class="btn btn-secondary mini" onclick="openRecipe('${activeMeal.id}')">Open Full Recipe Modal</button>
-                <button class="btn btn-primary mini" onclick="trackMeal('${activeMeal.id}')">+ Log Meal (${money(activeMeal.price)})</button>
-              </div>
-            ` : ''}
-          </div>
-
-          <div class="card">
-            <div class="section-head compact">
-              <div>
-                <div class="eyebrow">Interactive Video Playlist</div>
-                <h3>All ${list.length} Filipino Cooking Reels (Click Any Video to Play)</h3>
-                <p>Every video features a kidney-safe Filipino dish with itemized PHP wet-market pricing.</p>
-              </div>
-            </div>
-            <div class="reel-directory-grid">
-              ${list.map((r, idx) => {
-                const m = state.meals.find(x => x.id === r.mealId) || state.meals[0];
-                const thumb = r.poster || mealImage(m);
-                const isAct = activeReel && activeReel.id === r.id;
-                return `
-                  <div class="reel-dir-card ${isAct ? 'active' : ''}" id="dir-reel-${esc(r.id)}" onclick="jumpToReel('${esc(r.id)}')">
-                    <img src="${esc(thumb)}" alt="${esc(r.title)}" onerror="this.onerror=null;this.src='./assets/meals/tofu-bowl.jpg'" />
-                    <div>
-                      <b style="display:block; font-size:12.5px; line-height:1.25;">${idx + 1}. ${esc(r.title.slice(0, 34))}</b>
-                      <span style="color:var(--brand-bright); font-size:11.5px; font-weight:700;">${money(m.price)} · ${m.sodiumMg || 310}mg Na</span>
-                      <small class="muted" style="display:block; font-size:10.5px;">▶ Click to play video</small>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
+      <div class="reels-stage">
+        <div class="reels-wrap" id="reelsWrap">
+          ${list.length
+            ? list.map((r, i) => reelCard(r, i)).join('')
+            : `<div class="reel"><div class="empty" style="max-width: 300px;">No saved videos yet. Tap ☆ on any cooking reel to bookmark it.</div></div>`
+          }
         </div>
       </div>
     </section>
@@ -1516,82 +1429,8 @@ function reels() {
   `);
 }
 
-function jumpToReel(reelId) {
-  state.activeReelId = reelId;
-  const card = document.querySelector(`.reel[data-reel="${CSS.escape(reelId)}"]`);
-  if (card) {
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    const v = card.querySelector('video');
-    if (v) v.play().catch(() => {});
-  }
-  updateActiveReelCompanion(reelId);
-}
-
 function updateActiveReelCompanion(reelId) {
   state.activeReelId = reelId;
-  $$('.reel-dir-card').forEach(el => {
-    el.classList.toggle('active', el.id === `dir-reel-${reelId}`);
-  });
-  const r = state.reels.find(x => x.id === reelId);
-  if (!r) return;
-  const activeMeal = state.meals.find(m => m.id === r.mealId) || state.meals[0];
-  const panel = $('#activeReelRecipePanel');
-  if (!panel || !activeMeal) return;
-  const activeIngs = activeMeal.ingredients || [];
-  const activeSteps = activeMeal.steps || [];
-  panel.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
-      <div>
-        <div class="eyebrow">Active Reel Recipe &amp; Palengke Cost Breakdown</div>
-        <h3 style="margin:4px 0 4px; font-size:20px;">${esc(cleanMealName(activeMeal.name))}</h3>
-        <p class="muted" style="margin:0; font-size:13px;">${esc(r.caption || cleanMealDesc(activeMeal))}</p>
-      </div>
-      <div style="text-align:right;">
-        <div class="price" style="font-size:22px;">${money(activeMeal.price)}</div>
-        <span class="tier-badge tier-${esc(getMealTier(activeMeal))}">${esc(getMealTier(activeMeal))} Tier</span>
-      </div>
-    </div>
-
-    <div class="macro-row" style="grid-template-columns:repeat(4,1fr); margin:14px 0;">
-      <div class="macro-cell"><b>${activeMeal.calories} kcal</b><span>Calories</span></div>
-      <div class="macro-cell"><b>${activeMeal.protein}g</b><span>Protein</span></div>
-      <div class="macro-cell"><b style="color:var(--brand-bright);">${activeMeal.sodiumMg || 310}mg</b><span>Sodium (Safe)</span></div>
-      <div class="macro-cell"><b>${esc(activeMeal.cookTime || '12 mins')}</b><span>Cook Time</span></div>
-    </div>
-
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-      <div>
-        <h4 style="margin:0 0 6px; font-size:13.5px; color:var(--brand-bright);">Palengke Ingredients</h4>
-        <table class="ing-table" style="margin:0;">
-          <tbody>
-            ${activeIngs.map(ing => `
-              <tr>
-                <td><b>${esc(ing.item)}</b></td>
-                <td class="muted">${esc(ing.amount)}</td>
-                <td style="text-align:right; color:var(--brand-bright); font-weight:700;">${esc(ing.cost)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <h4 style="margin:0 0 6px; font-size:13.5px; color:var(--brand-bright);">Quick Cooking Steps</h4>
-        <div class="step-list" style="margin:0;">
-          ${activeSteps.map((st, idx) => `
-            <div class="step-item" style="padding:8px 10px; font-size:12px;">
-              <div class="step-num" style="width:20px; height:20px; font-size:11px;">${idx + 1}</div>
-              <div>${esc(st)}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px; padding-top:12px; border-top:1px solid var(--line);">
-      <button class="btn btn-secondary mini" onclick="openRecipe('${activeMeal.id}')">Open Full Recipe Modal</button>
-      <button class="btn btn-primary mini" onclick="trackMeal('${activeMeal.id}')">+ Log Meal (${money(activeMeal.price)})</button>
-    </div>
-  `;
 }
 
 function shuffleReelsFeed() {
@@ -2051,7 +1890,7 @@ function scannerView() {
               <span class="risk-pill ${esc(risk.cls)}">${esc(risk.label)}</span>
             </div>
 
-            <div class="macro-row" style="margin: 12px 0; grid-template-columns: repeat(4, 1fr);">
+            <div class="macro-row macro-row-4" style="margin: 12px 0;">
               <div class="macro-cell">
                 <b style="color: var(--brand-bright); font-size: 14.5px;">${money(item.price)}</b>
                 <span>PH Price (${esc(item.budgetTier || 'Low')})</span>
@@ -2756,8 +2595,8 @@ function claimProVoucher(vendorName, code, discountText, perkText) {
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent('BYTEBITE-VIP:' + code + ':' + vendorName)}`;
   modal(`
     <p class="muted" style="margin-top:0;">Present this <b>ByteBite Pro VIP Pass</b> at <b>${esc(vendorName)}</b> in Cubao, Quezon City to redeem your discount on any verified low-sodium meal:</p>
-    <div style="display:grid; grid-template-columns:160px 1fr; gap:16px; align-items:center; padding:14px; border-radius:12px; background:var(--bg); border:1px solid var(--line); margin-bottom:14px;">
-      <div style="background:#fff; padding:8px; border-radius:10px; display:grid; place-items:center;">
+    <div class="qr-modal-grid">
+      <div style="background:#fff; padding:8px; border-radius:10px; display:grid; place-items:center; margin:0 auto;">
         <img src="${esc(qrSrc)}" alt="VIP Voucher QR" style="width:140px; height:140px; display:block;" />
       </div>
       <div>
@@ -3018,7 +2857,7 @@ function premium() {
           </div>
         </div>
 
-        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 12px;">
+        <div class="form-grid three" style="margin-top: 12px;">
           <div class="field">
             <label>1. Weekly Fast-Food / Instant Noodle Meals</label>
             <select onchange="updateRiskCalculator('fastFood', this.value)">
@@ -3443,6 +3282,7 @@ function guidePage() {
 }
 
 function render() {
+  syncDeviceViewport();
   const r = route();
   const html = r === 'home' ? home()
     : r === 'tracker' ? tracker()
