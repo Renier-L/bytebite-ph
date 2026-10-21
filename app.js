@@ -663,6 +663,7 @@ window.addEventListener('hashchange', () => {
     try { state.leafletMap.remove(); } catch {}
     state.leafletMap = null;
   }
+  window.scrollTo(0, 0);
   render();
 });
 
@@ -1423,6 +1424,8 @@ function reels() {
           <a class="reels-tab ${isSavedTab ? 'active' : ''}" href="#/saved">Saved (${(state.user?.savedReels || []).length})</a>
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-secondary mini" onclick="scrollReelStep(-1)" title="Previous Video">↑ Prev</button>
+          <button class="btn btn-secondary mini" onclick="scrollReelStep(1)" title="Next Video">↓ Next</button>
           <button class="btn btn-secondary mini" onclick="shuffleReelsFeed()" title="Load a different video order">↻ Shuffle Feed</button>
           <button class="btn btn-primary mini" onclick="openReelUpload()">+ Upload Video</button>
         </div>
@@ -1526,6 +1529,13 @@ function scrollNextReel(btn) {
   const current = btn.closest('.reel');
   const next = current?.nextElementSibling || $('#reelsWrap')?.firstElementChild;
   if (next) next.scrollIntoView({ behavior: 'smooth' });
+}
+
+function scrollReelStep(dir = 1) {
+  const wrap = $('#reelsWrap');
+  if (!wrap) return;
+  const h = wrap.clientHeight || 560;
+  wrap.scrollBy({ top: dir * h, behavior: 'smooth' });
 }
 
 /* Realistic Cooking Audio & Recipe Narration Engine */
@@ -1668,6 +1678,17 @@ function setupReels() {
     });
     if (v.readyState >= 1) ok();
   });
+
+  const reelsPage = $('.reels-page');
+  const reelsWrap = $('#reelsWrap');
+  if (reelsPage && reelsWrap) {
+    reelsPage.addEventListener('wheel', e => {
+      if (!reelsWrap.contains(e.target)) {
+        e.preventDefault();
+        reelsWrap.scrollBy({ top: e.deltaY, behavior: 'auto' });
+      }
+    }, { passive: false });
+  }
 }
 
 /* Meal Finder with Low / Medium / High Real Philippine Price Tiers */
