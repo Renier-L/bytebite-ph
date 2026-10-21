@@ -23,8 +23,27 @@ const state = {
   reelsSoundOn: false,
   audioCtx: null,
   sizzleNode: null,
-  sizzleGain: null
+  sizzleGain: null,
+  darkMode: localStorage.getItem('bb_dark_mode') === '1',
+  proPlanTier: 'Low',
+  proPlanSeed: 0,
+  checkedGrocery: {},
+  riskFastFood: 1,
+  riskWater: 8,
+  riskSalt: 'low',
+  activeReelId: ''
 };
+
+function applyTheme() {
+  document.body.classList.toggle('dark-theme', !!state.darkMode);
+}
+
+function toggleTheme() {
+  state.darkMode = !state.darkMode;
+  localStorage.setItem('bb_dark_mode', state.darkMode ? '1' : '0');
+  applyTheme();
+  render();
+}
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -66,7 +85,7 @@ const navGroups = [
     label: 'Platform Guide & Account',
     items: [
       ['guide', 'guide', 'How ByteBite Works', 'Guide'],
-      ['premium', 'premium', 'ByteBite Pro', ''],
+      ['premium', 'premium', 'ByteBite Pro', 'PRO'],
       ['profile', 'profile', 'Settings', '']
     ]
   }
@@ -573,6 +592,7 @@ function moduleGuide(moduleName, steps = []) {
 }
 
 async function boot() {
+  applyTheme();
   const d = await api('/bootstrap');
   Object.assign(state, d);
   if (Array.isArray(state.meals)) {
@@ -586,6 +606,7 @@ async function boot() {
     if (state.reels.length > 1) {
       state.reels = shuffleArray(state.reels);
     }
+    if (state.reels[0]) state.activeReelId = state.reels[0].id;
   }
   REAL_WORLD_FOOD_PROFILES.forEach(p => { if (p && p.image) p.image = relUrl(p.image); });
   connectEvents();
@@ -675,6 +696,7 @@ function shell(inner) {
               <span>Daily Spend:</span>
               <strong>${money(spentToday)} / ${money(dailyBudget)}</strong>
             </a>
+            <button class="btn btn-secondary mini" onclick="toggleTheme()" title="Switch between Clinical Daylight and Dark Studio Mode">${state.darkMode ? '☀️ Light' : '🌙 Dark'}</button>
             <a class="btn btn-secondary mini" href="#/guide">How It Works</a>
             ${state.user
               ? `<button class="btn btn-secondary mini" onclick="goProfile()">${esc(state.user.name.split(' ')[0])}</button>`
@@ -911,15 +933,15 @@ function home() {
             <div class="eyebrow" style="margin-bottom: 8px;">Philippine Daily Budget Tiers</div>
             <div style="display:grid; gap:6px; font-size:12.5px;">
               <a href="#/generator" onclick="state.generatorTier='Low'" style="display:flex; justify-content:space-between; padding:8px 10px; border-radius:8px; background:var(--bg); border:1px solid var(--line); text-decoration:none;">
-                <span><b style="color:#4ade80;">Low Tier</b> (Carinderia / Dorm)</span>
+                <span><b style="color:var(--brand-bright);">Low Tier</b> (Carinderia / Dorm)</span>
                 <b>₱45 – ₱75 / meal</b>
               </a>
               <a href="#/generator" onclick="state.generatorTier='Medium'" style="display:flex; justify-content:space-between; padding:8px 10px; border-radius:8px; background:var(--bg); border:1px solid var(--line); text-decoration:none;">
-                <span><b style="color:#38bdf8;">Medium Tier</b> (Campus / BPO)</span>
+                <span><b style="color:#0284c7;">Medium Tier</b> (Campus / BPO)</span>
                 <b>₱80 – ₱135 / meal</b>
               </a>
               <a href="#/generator" onclick="state.generatorTier='High'" style="display:flex; justify-content:space-between; padding:8px 10px; border-radius:8px; background:var(--bg); border:1px solid var(--line); text-decoration:none;">
-                <span><b style="color:#fbbf24;">High Tier</b> (High-Protein / Grill)</span>
+                <span><b style="color:var(--warn);">High Tier</b> (High-Protein / Grill)</span>
                 <b>₱140 – ₱235 / meal</b>
               </a>
             </div>
@@ -1021,7 +1043,7 @@ function tracker() {
       <div class="log-row">
         <div>
           <b style="font-size: 14.5px;">${esc(cleanMealName(x.name))}</b>
-          <div class="muted" style="font-size: 12px; margin-top: 2px;">${esc(x.source)} · ${x.servings} serving${x.servings !== 1 ? 's' : ''} · <span style="color:${risk.level === 'HIGH' ? '#fca5a5' : '#86efac'};">${esc(risk.label)}</span></div>
+          <div class="muted" style="font-size: 12px; margin-top: 2px;">${esc(x.source)} · ${x.servings} serving${x.servings !== 1 ? 's' : ''} · <span style="color:${risk.level === 'HIGH' ? 'var(--danger)' : 'var(--brand-bright)'}; font-weight:600;">${esc(risk.label)}</span></div>
         </div>
         <div class="log-numbers">
           <span class="log-pill">${Math.round(x.calories * x.servings)} kcal</span>
@@ -1252,9 +1274,9 @@ function kidneyPage() {
             </div>
 
             <div class="sodium-zone-labels">
-              <span style="color:#4ade80;">0mg (Safe Start)</span>
-              <span style="color:#fbbf24;">1,500mg (DOH Ideal)</span>
-              <span style="color:#f87171;">2,000mg (WHO Limit)</span>
+              <span style="color:var(--brand-bright);">0mg (Safe Start)</span>
+              <span style="color:var(--warn);">1,500mg (DOH Ideal)</span>
+              <span style="color:var(--danger);">2,000mg (WHO Limit)</span>
             </div>
           </div>
 
@@ -1298,7 +1320,7 @@ function kidneyPage() {
                   <div class="swap-col-limit">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px;">
                       <span class="risk-pill risk-high">⚠️ Limit / Avoid</span>
-                      <b style="font-size:12px; color:#fca5a5;">${esc(s.badSodium)}</b>
+                      <b style="font-size:12px; color:var(--danger);">${esc(s.badSodium)}</b>
                     </div>
                     <b style="display:block; font-size:13px; color:var(--text); margin-bottom:3px;">${esc(s.badName)} (${esc(s.badPrice)})</b>
                     <span class="muted" style="font-size:11.5px; line-height:1.4; display:block;">${esc(s.badNote)}</span>
@@ -1307,7 +1329,7 @@ function kidneyPage() {
                   <div class="swap-col-healthy">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px;">
                       <span class="risk-pill risk-safe">✓ Kidney Safe</span>
-                      <b style="font-size:12px; color:#86efac;">${esc(s.goodSodium)}</b>
+                      <b style="font-size:12px; color:var(--brand-bright);">${esc(s.goodSodium)}</b>
                     </div>
                     <b style="display:block; font-size:13px; color:var(--text); margin-bottom:3px;">${esc(s.goodName)}</b>
                     <span class="muted" style="font-size:11.5px; line-height:1.4; display:block;">${esc(s.goodNote)}</span>
@@ -1370,26 +1392,123 @@ function reels() {
   const list = isSavedTab
     ? state.reels.filter(r => (state.user?.savedReels || []).includes(r.id))
     : state.reels;
+  const activeReel = list.find(r => r.id === state.activeReelId) || list[0] || state.reels[0];
+  const activeMeal = activeReel ? (state.meals.find(m => m.id === activeReel.mealId) || state.meals[0]) : state.meals[0];
+  const activeIngs = activeMeal?.ingredients || [];
+  const activeSteps = activeMeal?.steps || [];
 
   return shell(`
-    <section class="reels-page">
-      <div class="reels-header">
+    <section class="page">
+      ${moduleGuide('Cooking Reels & Audio Guides', [
+        ['1. Watch or Select Any Video', 'Scroll the vertical player on the left or click any of the 12 videos in the Culinary Directory on the right.'],
+        ['2. Enable Voice & Kitchen Audio', 'Tap "Tap for Audio" on the video player to hear realistic kitchen sizzle and step-by-step recipe voice narration.'],
+        ['3. Cook or Log the Dish', 'Review the itemized Philippine palengke ingredient breakdown on the right or click "+ Log Meal" to record it.']
+      ])}
+
+      <div class="reels-header" style="max-width:none; margin:0;">
         <div class="reels-tabs">
           <a class="reels-tab ${!isSavedTab ? 'active' : ''}" href="#/reels">All Cooking Reels (${state.reels.length})</a>
           <a class="reels-tab ${isSavedTab ? 'active' : ''}" href="#/saved">Saved (${(state.user?.savedReels || []).length})</a>
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; flex-wrap:wrap;">
           <button class="btn btn-secondary mini" onclick="shuffleReelsFeed()" title="Load a different video order">↻ Shuffle Feed</button>
           <button class="btn btn-primary mini" onclick="openReelUpload()">+ Upload Video</button>
         </div>
       </div>
 
-      <div class="reels-stage">
-        <div class="reels-wrap" id="reelsWrap">
-          ${list.length
-            ? list.map((r, i) => reelCard(r, i)).join('')
-            : `<div class="reel"><div class="empty" style="max-width: 300px;">No saved videos yet. Tap ☆ on any cooking reel to bookmark it.</div></div>`
-          }
+      <div class="reels-studio-grid">
+        <div class="reels-stage">
+          <div class="reels-wrap" id="reelsWrap">
+            ${list.length
+              ? list.map((r, i) => reelCard(r, i)).join('')
+              : `<div class="reel"><div class="empty" style="max-width: 300px;">No saved videos yet. Tap ☆ on any cooking reel to bookmark it.</div></div>`
+            }
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div class="card" id="activeReelRecipePanel">
+            ${activeMeal ? `
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                <div>
+                  <div class="eyebrow">Active Reel Recipe &amp; Palengke Cost Breakdown</div>
+                  <h3 style="margin:4px 0 4px; font-size:20px;">${esc(cleanMealName(activeMeal.name))}</h3>
+                  <p class="muted" style="margin:0; font-size:13px;">${esc(activeReel?.caption || cleanMealDesc(activeMeal))}</p>
+                </div>
+                <div style="text-align:right;">
+                  <div class="price" style="font-size:22px;">${money(activeMeal.price)}</div>
+                  <span class="tier-badge tier-${esc(getMealTier(activeMeal))}">${esc(getMealTier(activeMeal))} Tier</span>
+                </div>
+              </div>
+
+              <div class="macro-row" style="grid-template-columns:repeat(4,1fr); margin:14px 0;">
+                <div class="macro-cell"><b>${activeMeal.calories} kcal</b><span>Calories</span></div>
+                <div class="macro-cell"><b>${activeMeal.protein}g</b><span>Protein</span></div>
+                <div class="macro-cell"><b style="color:var(--brand-bright);">${activeMeal.sodiumMg || 310}mg</b><span>Sodium (Safe)</span></div>
+                <div class="macro-cell"><b>${esc(activeMeal.cookTime || '12 mins')}</b><span>Cook Time</span></div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div>
+                  <h4 style="margin:0 0 6px; font-size:13.5px; color:var(--brand-bright);">Palengke Ingredients</h4>
+                  <table class="ing-table" style="margin:0;">
+                    <tbody>
+                      ${activeIngs.map(ing => `
+                        <tr>
+                          <td><b>${esc(ing.item)}</b></td>
+                          <td class="muted">${esc(ing.amount)}</td>
+                          <td style="text-align:right; color:var(--brand-bright); font-weight:700;">${esc(ing.cost)}</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+                <div>
+                  <h4 style="margin:0 0 6px; font-size:13.5px; color:var(--brand-bright);">Quick Cooking Steps</h4>
+                  <div class="step-list" style="margin:0;">
+                    ${activeSteps.map((st, idx) => `
+                      <div class="step-item" style="padding:8px 10px; font-size:12px;">
+                        <div class="step-num" style="width:20px; height:20px; font-size:11px;">${idx + 1}</div>
+                        <div>${esc(st)}</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px; padding-top:12px; border-top:1px solid var(--line);">
+                <button class="btn btn-secondary mini" onclick="openRecipe('${activeMeal.id}')">Open Full Recipe Modal</button>
+                <button class="btn btn-primary mini" onclick="trackMeal('${activeMeal.id}')">+ Log Meal (${money(activeMeal.price)})</button>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="card">
+            <div class="section-head compact">
+              <div>
+                <div class="eyebrow">Interactive Video Playlist</div>
+                <h3>All ${list.length} Filipino Cooking Reels (Click Any Video to Play)</h3>
+                <p>Every video features a kidney-safe Filipino dish with itemized PHP wet-market pricing.</p>
+              </div>
+            </div>
+            <div class="reel-directory-grid">
+              ${list.map((r, idx) => {
+                const m = state.meals.find(x => x.id === r.mealId) || state.meals[0];
+                const thumb = r.poster || mealImage(m);
+                const isAct = activeReel && activeReel.id === r.id;
+                return `
+                  <div class="reel-dir-card ${isAct ? 'active' : ''}" id="dir-reel-${esc(r.id)}" onclick="jumpToReel('${esc(r.id)}')">
+                    <img src="${esc(thumb)}" alt="${esc(r.title)}" onerror="this.onerror=null;this.src='./assets/meals/tofu-bowl.jpg'" />
+                    <div>
+                      <b style="display:block; font-size:12.5px; line-height:1.25;">${idx + 1}. ${esc(r.title.slice(0, 34))}</b>
+                      <span style="color:var(--brand-bright); font-size:11.5px; font-weight:700;">${money(m.price)} · ${m.sodiumMg || 310}mg Na</span>
+                      <small class="muted" style="display:block; font-size:10.5px;">▶ Click to play video</small>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1397,9 +1516,88 @@ function reels() {
   `);
 }
 
+function jumpToReel(reelId) {
+  state.activeReelId = reelId;
+  const card = document.querySelector(`.reel[data-reel="${CSS.escape(reelId)}"]`);
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const v = card.querySelector('video');
+    if (v) v.play().catch(() => {});
+  }
+  updateActiveReelCompanion(reelId);
+}
+
+function updateActiveReelCompanion(reelId) {
+  state.activeReelId = reelId;
+  $$('.reel-dir-card').forEach(el => {
+    el.classList.toggle('active', el.id === `dir-reel-${reelId}`);
+  });
+  const r = state.reels.find(x => x.id === reelId);
+  if (!r) return;
+  const activeMeal = state.meals.find(m => m.id === r.mealId) || state.meals[0];
+  const panel = $('#activeReelRecipePanel');
+  if (!panel || !activeMeal) return;
+  const activeIngs = activeMeal.ingredients || [];
+  const activeSteps = activeMeal.steps || [];
+  panel.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+      <div>
+        <div class="eyebrow">Active Reel Recipe &amp; Palengke Cost Breakdown</div>
+        <h3 style="margin:4px 0 4px; font-size:20px;">${esc(cleanMealName(activeMeal.name))}</h3>
+        <p class="muted" style="margin:0; font-size:13px;">${esc(r.caption || cleanMealDesc(activeMeal))}</p>
+      </div>
+      <div style="text-align:right;">
+        <div class="price" style="font-size:22px;">${money(activeMeal.price)}</div>
+        <span class="tier-badge tier-${esc(getMealTier(activeMeal))}">${esc(getMealTier(activeMeal))} Tier</span>
+      </div>
+    </div>
+
+    <div class="macro-row" style="grid-template-columns:repeat(4,1fr); margin:14px 0;">
+      <div class="macro-cell"><b>${activeMeal.calories} kcal</b><span>Calories</span></div>
+      <div class="macro-cell"><b>${activeMeal.protein}g</b><span>Protein</span></div>
+      <div class="macro-cell"><b style="color:var(--brand-bright);">${activeMeal.sodiumMg || 310}mg</b><span>Sodium (Safe)</span></div>
+      <div class="macro-cell"><b>${esc(activeMeal.cookTime || '12 mins')}</b><span>Cook Time</span></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div>
+        <h4 style="margin:0 0 6px; font-size:13.5px; color:var(--brand-bright);">Palengke Ingredients</h4>
+        <table class="ing-table" style="margin:0;">
+          <tbody>
+            ${activeIngs.map(ing => `
+              <tr>
+                <td><b>${esc(ing.item)}</b></td>
+                <td class="muted">${esc(ing.amount)}</td>
+                <td style="text-align:right; color:var(--brand-bright); font-weight:700;">${esc(ing.cost)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h4 style="margin:0 0 6px; font-size:13.5px; color:var(--brand-bright);">Quick Cooking Steps</h4>
+        <div class="step-list" style="margin:0;">
+          ${activeSteps.map((st, idx) => `
+            <div class="step-item" style="padding:8px 10px; font-size:12px;">
+              <div class="step-num" style="width:20px; height:20px; font-size:11px;">${idx + 1}</div>
+              <div>${esc(st)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px; padding-top:12px; border-top:1px solid var(--line);">
+      <button class="btn btn-secondary mini" onclick="openRecipe('${activeMeal.id}')">Open Full Recipe Modal</button>
+      <button class="btn btn-primary mini" onclick="trackMeal('${activeMeal.id}')">+ Log Meal (${money(activeMeal.price)})</button>
+    </div>
+  `;
+}
+
 function shuffleReelsFeed() {
   stopReelAudio();
   state.reels = shuffleArray(state.reels);
+  if (state.reels[0]) state.activeReelId = state.reels[0].id;
   render();
   const wrap = $('#reelsWrap');
   if (wrap) wrap.scrollTop = 0;
@@ -1591,6 +1789,7 @@ function setupReels() {
         v.volume = 1.0;
         const p = v.play();
         if (p && p.catch) p.catch(() => {});
+        if (reelId) updateActiveReelCompanion(reelId);
         if (state.reelsSoundOn && reelId) playReelAudio(reelId);
       } else {
         v.pause();
@@ -1673,6 +1872,10 @@ function generator() {
 
         <form id="genForm" class="form-grid four" style="margin-top: 14px;">
           <div class="field">
+            <label>Search Dish or Ingredient</label>
+            <input id="queryInput" name="q" type="text" placeholder="e.g., monggo, tilapia, inasal, tofu...">
+          </div>
+          <div class="field">
             <label>Price Tier</label>
             <select id="tierInput" name="tier">
               <option value="All" ${tier === 'All' ? 'selected' : ''}>All Tiers (₱45–₱235)</option>
@@ -1685,23 +1888,22 @@ function generator() {
             <label>Max Price per Meal (₱)</label>
             <input id="budgetInput" name="budget" type="number" min="45" max="1000" value="${defaultBudget}" required>
           </div>
-          <div class="field">
-            <label>Nutrition &amp; Kidney Goal</label>
-            <select id="goalInput" name="goal">
-              ${['Balanced', 'Budget Saver', 'Low Sodium', 'High Protein', 'Weight Management'].map(x => `
-                <option ${defaultGoal === x ? 'selected' : ''}>${x}</option>
-              `).join('')}
-            </select>
-          </div>
           <div class="field" style="justify-content: flex-end;">
-            <label>Dietary Preference</label>
+            <label>Nutrition Goal &amp; Sort</label>
             <div style="display:flex; gap:8px;">
-              <select id="dietaryInput" name="dietary" style="flex:1;">
-                ${['No preference', 'Vegetarian', 'Vegan'].map(x => `
-                  <option ${state.user?.dietary === x ? 'selected' : ''}>${x}</option>
+              <select id="goalInput" name="goal" style="flex:1;">
+                ${['Balanced', 'Budget Saver', 'Low Sodium', 'High Protein', 'Weight Management'].map(x => `
+                  <option ${defaultGoal === x ? 'selected' : ''}>${x}</option>
                 `).join('')}
               </select>
-              <button class="btn btn-primary" style="height: 40px;">Apply</button>
+              <select id="sortInput" name="sort" style="flex:1;" title="Sort results">
+                <option value="price">Lowest Price (₱)</option>
+                <option value="sodium">Lowest Sodium (mg)</option>
+                <option value="protein">Highest Protein (g)</option>
+                <option value="score">Top Health Score</option>
+              </select>
+              <input type="hidden" id="dietaryInput" name="dietary" value="${esc(state.user?.dietary || 'No preference')}">
+              <button class="btn btn-primary" style="height: 40px;">Filter</button>
             </div>
           </div>
         </form>
@@ -2435,93 +2637,511 @@ function findNearby() {
   );
 }
 
-function premium() {
+function getProWeeklySchedule() {
+  const tier = state.proPlanTier || 'Low';
+  const pool = state.meals.filter(m => getMealTier(m) === tier);
+  const list = pool.length >= 9 ? pool : state.meals;
+  const seed = state.proPlanSeed || 0;
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const budgetMeals = state.meals.slice(0, 12);
+  return days.map((d, i) => {
+    const b = list[(i * 3 + seed * 5) % list.length];
+    const l = list[(i * 3 + 1 + seed * 5) % list.length];
+    const dn = list[(i * 3 + 2 + seed * 5) % list.length];
+    const dayTotal = b.price + l.price + dn.price;
+    const daySodium = (b.sodiumMg || 300) + (l.sodiumMg || 320) + (dn.sodiumMg || 310);
+    const dayProtein = (b.protein || 18) + (l.protein || 22) + (dn.protein || 20);
+    return { day: d, b, l, dn, dayTotal, daySodium, dayProtein };
+  });
+}
+
+function getProGroceryChecklist(schedule) {
+  const map = new Map();
+  schedule.forEach(dayObj => {
+    [dayObj.b, dayObj.l, dayObj.dn].forEach(meal => {
+      const ings = meal.ingredients && meal.ingredients.length ? meal.ingredients : [
+        { item: 'Lean Filipino protein / firm tokwa', amount: '150g', cost: '₱28' },
+        { item: 'Fresh leafy greens (malunggay / pechay / kangkong)', amount: '1.5 cups', cost: '₱15' },
+        { item: 'Garlic, red onion, luya & calamansi', amount: '2 tbsp', cost: '₱8' }
+      ];
+      ings.forEach(ing => {
+        const key = ing.item;
+        const numCost = Number(String(ing.cost || '15').replace(/[^0-9.]/g, '')) || 15;
+        if (!map.has(key)) {
+          map.set(key, { item: key, portion: ing.amount, count: 1, totalCost: numCost });
+        } else {
+          const prev = map.get(key);
+          prev.count += 1;
+          prev.totalCost += numCost;
+        }
+      });
+    });
+  });
+  return [...map.values()].slice(0, 12);
+}
+
+function selectProPlanTier(tier) {
+  state.proPlanTier = tier;
+  render();
+  toast(`Switched 7-Day Pro Planner to ${tier} Budget Tier.`);
+}
+
+function regenerateProPlan() {
+  state.proPlanSeed = (state.proPlanSeed || 0) + 1;
+  state.checkedGrocery = {};
+  render();
+  toast('Generated a fresh 7-day kidney-safe Filipino meal schedule & palengke list!');
+}
+
+function toggleGroceryItem(key) {
+  state.checkedGrocery[key] = !state.checkedGrocery[key];
+  render();
+}
+
+async function logFullDayPlan(bId, lId, dId, dayLabel) {
+  if (!needAuth()) return;
+  try {
+    await api('/tracker/meal/' + bId, { method: 'POST' });
+    await api('/tracker/meal/' + lId, { method: 'POST' });
+    state.tracker = await api('/tracker/meal/' + dId, { method: 'POST' });
+    toast(`Logged all 3 kidney-safe meals for ${dayLabel} to your Daily Log!`);
+    render();
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
+function exportGroceryModal() {
+  const schedule = getProWeeklySchedule();
+  const groceries = getProGroceryChecklist(schedule);
+  const weekTotal = schedule.reduce((s, d) => s + d.dayTotal, 0);
+  modal(`
+    <p class="muted" style="margin-top:0;">
+      Official <b>ByteBite Pro 7-Day Philippine Palengke Shopping Checklist</b> (${esc(state.proPlanTier)} Budget Tier · Est. Weekly Meal Total: <b>${money(weekTotal)}</b>):
+    </p>
+    <div style="max-height:320px; overflow-y:auto; border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--bg); margin-bottom:14px;">
+      <table class="ing-table" style="margin:0;">
+        <thead>
+          <tr style="font-size:11px; text-transform:uppercase; color:var(--muted);">
+            <td>Palengke Ingredient</td>
+            <td>Weekly Qty</td>
+            <td style="text-align:right;">Est. PH Cost</td>
+          </tr>
+        </thead>
+        <tbody>
+          ${groceries.map(g => `
+            <tr>
+              <td><b>✓ ${esc(g.item)}</b></td>
+              <td class="muted">${g.count}x (${esc(g.portion)})</td>
+              <td style="text-align:right; color:var(--brand-bright); font-weight:700;">${money(g.totalCost)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button class="btn btn-secondary mini" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary mini" onclick="window.print()">🖨 Print / Save PDF</button>
+    </div>
+  `, 'Weekly Palengke Shopping List');
+}
+
+function updateRiskCalculator(field, val) {
+  if (field === 'fastFood') state.riskFastFood = Number(val);
+  if (field === 'water') state.riskWater = Number(val);
+  if (field === 'salt') state.riskSalt = String(val);
+  render();
+}
+
+function claimProVoucher(vendorName, code, discountText, perkText) {
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent('BYTEBITE-VIP:' + code + ':' + vendorName)}`;
+  modal(`
+    <p class="muted" style="margin-top:0;">Present this <b>ByteBite Pro VIP Pass</b> at <b>${esc(vendorName)}</b> in Cubao, Quezon City to redeem your discount on any verified low-sodium meal:</p>
+    <div style="display:grid; grid-template-columns:160px 1fr; gap:16px; align-items:center; padding:14px; border-radius:12px; background:var(--bg); border:1px solid var(--line); margin-bottom:14px;">
+      <div style="background:#fff; padding:8px; border-radius:10px; display:grid; place-items:center;">
+        <img src="${esc(qrSrc)}" alt="VIP Voucher QR" style="width:140px; height:140px; display:block;" />
+      </div>
+      <div>
+        <span class="pro-crown-badge">★ VIP PARTNER PASS</span>
+        <h3 style="margin:6px 0 4px; font-size:19px;">${esc(discountText)} — ${esc(vendorName)}</h3>
+        <p class="muted" style="margin:0 0 8px; font-size:13px;">${esc(perkText)}</p>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; color:var(--brand-bright); padding:6px 10px; border-radius:8px; background:var(--panel); border:1px dashed var(--brand); display:inline-block;">
+          VOUCHER CODE: ${esc(code)}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn btn-secondary mini" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary mini" onclick="closeModal(); toast('VIP Voucher ${esc(code)} saved to your account!')">✓ Save Voucher</button>
+    </div>
+  `, 'ByteBite Pro VIP Kitchen Voucher');
+}
+
+function openProCheckoutModal() {
+  if (!needAuth()) return;
+  modal(`
+    <p class="muted" style="margin-top:0;">Unlock the complete <b>ByteBite Pro Renal &amp; Budget Suite</b>. Choose your preferred Philippine payment method below:</p>
+    <form id="proCheckoutForm" class="form-grid">
+      <div class="field full">
+        <label>Select Membership Tier</label>
+        <select name="plan">
+          <option value="99">Standard ByteBite Pro — ₱99 / month (Cancel anytime)</option>
+          <option value="79">TIP / Cubao Student &amp; Senior Citizen Discount — ₱79 / month (20% Off)</option>
+          <option value="890">Annual Family &amp; Renal Protection Pass — ₱890 / year (Save ₱298)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Payment Channel</label>
+        <select name="method">
+          <option value="GCash">GCash Express Checkout</option>
+          <option value="Maya">Maya Wallet / QR Ph</option>
+          <option value="BPI / BDO">BPI / BDO Online Direct</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Mobile Number (GCash / Maya)</label>
+        <input name="mobile" placeholder="0917 123 4567" value="0917 882 4190" required>
+      </div>
+      <div class="full notice">
+        <b>Instant Pro Activation Includes:</b> Unlimited AI Camera Food Plate Scans, Customizable 7-Day Low/Med/High Meal Schedules, Automated Palengke Grocery Checklists, and 6 Cubao Partner Karinderya VIP Vouchers (save ₱250+/month).
+      </div>
+      <div class="full">
+        <button class="btn btn-primary" style="width:100%;">Confirm &amp; Activate ByteBite Pro Now</button>
+      </div>
+    </form>
+  `, 'Activate ByteBite Pro Membership');
+
+  $('#proCheckoutForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    closeModal();
+    await activatePremium();
+  });
+}
+
+function premium() {
+  const isPro = !!state.user?.premium;
+  const tier = state.proPlanTier || 'Low';
+  const schedule = getProWeeklySchedule();
+  const groceries = getProGroceryChecklist(schedule);
+  const weekCost = schedule.reduce((s, d) => s + d.dayTotal, 0);
+  const avgDailyCost = Math.round(weekCost / 7);
+  const avgDailySodium = Math.round(schedule.reduce((s, d) => s + d.daySodium, 0) / 7);
+
+  // Clinical Kidney & Blood Pressure Risk Calculator computations
+  const ff = state.riskFastFood ?? 1;
+  const waterG = state.riskWater ?? 8;
+  const saltHabit = state.riskSalt || 'low';
+  const baseNa = saltHabit === 'low' ? 1120 : saltHabit === 'mod' ? 1850 : 2650;
+  const estDailyNa = Math.round(baseNa + ff * 240 - Math.max(0, waterG - 6) * 45);
+  const renalScore = Math.max(22, Math.min(99, Math.round(100 - Math.max(0, (estDailyNa - 1050) / 22) + Math.min(8, waterG))));
+  const monthlyNaSavedGrams = Math.max(12, Math.round(((2800 - Math.min(2400, estDailyNa)) * 30) / 1000));
+  const annualPesoSaved = (ff <= 1 ? 18500 : ff <= 3 ? 14200 : 9600) + (saltHabit === 'low' ? 8400 : 3200);
+
+  const vouchers = [
+    {
+      vendor: 'Luntian Karinderya & Grill',
+      area: 'Aurora Blvd, Cubao',
+      discount: '15% OFF',
+      code: 'BBPRO-LUNTIAN15',
+      perk: '15% off any Low-Sodium Ginisang Monggo, Tinola, or Steamed Tilapia Bowl (Min. spend ₱55).'
+    },
+    {
+      vendor: 'Kusina Verde Cubao',
+      area: 'Araneta City, Cubao',
+      discount: '₱25 OFF',
+      code: 'BBPRO-VERDE25',
+      perk: '₱25 instant discount on Grilled Chicken Inasal or Garlic Tokwa High-Protein Plates.'
+    },
+    {
+      vendor: 'PeraPlate Express TIP',
+      area: 'Near TIP Quezon City',
+      discount: 'FREE DRINK',
+      code: 'BBPRO-TIPCHIA',
+      perk: 'Free 16oz Unsweetened Calamansi-Chia Kidney Flush Drink with any Low or Medium Tier meal.'
+    },
+    {
+      vendor: 'Lutong Bahay Renal Kitchen',
+      area: 'P. Tuazon Blvd, Cubao',
+      discount: '15% OFF',
+      code: 'BBPRO-RENAL15',
+      perk: '15% off 3-Meal Daily Student & BPO Bento Subscriptions (<950mg total daily sodium).'
+    },
+    {
+      vendor: 'Katipunan Fresh Bowl Co.',
+      area: 'Katipunan Ave, QC',
+      discount: '₱30 OFF',
+      code: 'BBPRO-KATIP30',
+      perk: '₱30 off High-Tier Seared Tuna, Salmon, or Lean Beef Broccoli Brown Rice Bowls.'
+    },
+    {
+      vendor: 'Cubao Wet Market Palengke Hub',
+      area: 'Farmers / Murphy Cubao',
+      discount: '10% OFF',
+      code: 'BBPRO-PALENGKE10',
+      perk: '10% off pre-portioned weekly vegetable, tokwa, and lean fish bundles for home cooking.'
+    }
+  ];
 
   return shell(`
     <section class="page">
-      ${moduleGuide('ByteBite Pro & 7-Day Kidney-Safe Planner', [
-        ['1. Follow Your 7-Day Schedule', 'Click any Breakfast, Lunch, or Dinner card in the Monday–Sunday grid to view its full palengke recipe and cost.'],
-        ['2. Stay Under 1,500mg Sodium/Day', 'Every 3-meal daily combination is pre-balanced between ₱160–₱260/day and under ~950mg total sodium.'],
-        ['3. Scan Unlimited Meals Live', 'Use the embedded AI Vision Scanner above to inspect any restaurant or carinderia meal before you eat.']
+      ${moduleGuide('ByteBite Pro Suite & 7-Day Planner', [
+        ['1. Customize Your 7-Day Plan', 'Switch between Low (₱150+/day), Medium (₱255+/day), and High (₱430+/day) tiers, regenerate menus, or log a full day in 1 click.'],
+        ['2. Use Auto-Generated Palengke Lists', 'Check off weekly wet-market ingredients with real PHP prices and print/export your shopping list.'],
+        ['3. Claim VIP Partner Vouchers', 'Redeem 10%–15% off QR vouchers at 6 Cubao kitchens—saving over ₱350/month on a ₱99/mo membership.']
       ])}
 
-      ${scannerView()}
+      <div class="pro-hero-banner">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+            <span class="pro-crown-badge">${isPro ? '★ BYTEBITE PRO ACTIVE' : '★ PREMIUM RENAL & BUDGET SUITE'}</span>
+            <span class="chip" style="background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2);">₱99 / month (₱3.30 / day)</span>
+          </div>
+          <h2 style="margin:0 0 10px; font-size:26px; line-height:1.18; color:#fff;">
+            Make Every Peso Count: Automated 7-Day Kidney-Safe Meal Planning, Palengke Grocery Lists &amp; VIP Kitchen Perks
+          </h2>
+          <p style="margin:0 0 16px; color:#cbd5e1; font-size:14px; line-height:1.6;">
+            ByteBite Pro pays for itself in just 3 meals. Get unlimited real-time AI camera food scanning, customizable 7-day low-sodium meal schedules across Low, Medium, and High budgets, automated Philippine wet-market shopping checklists, clinical kidney risk projections, and exclusive 10%–15% discounts at Cubao partner kitchens.
+          </p>
+          <div class="actions">
+            ${isPro
+              ? `<button class="btn btn-primary" onclick="regenerateProPlan()">↻ Generate New 7-Day Pro Menu</button>`
+              : `<button class="btn btn-primary" onclick="openProCheckoutModal()">⚡ Activate ByteBite Pro — ₱99/mo</button>`
+            }
+            <button class="btn btn-secondary" style="background:rgba(255,255,255,0.1); color:#fff; border-color:rgba(255,255,255,0.22);" onclick="exportGroceryModal()">🖨 Print Weekly Palengke List</button>
+            <button class="btn btn-secondary" style="background:rgba(255,255,255,0.1); color:#fff; border-color:rgba(255,255,255,0.22);" onclick="openProCheckoutModal()">💳 View Student &amp; GCash Plans</button>
+          </div>
+        </div>
 
-      <div class="card" style="padding: 24px; margin-bottom: 0;">
+        <div class="pro-stat-grid">
+          <div class="pro-stat-box">
+            <b>₱2,450/mo</b>
+            <span>Avg. Food &amp; Medical Savings vs. Fast Food</span>
+          </div>
+          <div class="pro-stat-box">
+            <b>${avgDailySodium}mg / day</b>
+            <span>Active 7-Day Plan Avg. Sodium (DOH Optimal)</span>
+          </div>
+          <div class="pro-stat-box">
+            <b>6 Kitchens</b>
+            <span>10%–15% VIP Partner Vouchers in Cubao</span>
+          </div>
+          <div class="pro-stat-box">
+            <b>${money(avgDailyCost)} / day</b>
+            <span>3 Full Meals/Day (${esc(tier)} Tier Active)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRO FEATURE 1: Interactive 7-Day Kidney-Safe Meal Schedule Customizer -->
+      <div class="card" style="padding: 24px;">
         <div class="section-head compact">
           <div>
-            <div class="eyebrow">Kidney-Safe Weekly Planner</div>
-            <h3 style="margin-top: 3px;">7-Day Low-Sodium Philippine Meal Schedule (₱160–₱260 / Day)</h3>
-            <p>Every day stays under the 1,500mg optimal kidney sodium threshold. Click any meal for palengke ingredient costs and cooking steps.</p>
+            <div class="eyebrow">Pro Feature 1 · Automated Weekly Meal Architect</div>
+            <h3 style="margin-top: 3px;">Interactive 7-Day Kidney-Safe Philippine Meal Schedule (${esc(tier)} Tier · Avg ${money(avgDailyCost)}/Day)</h3>
+            <p>Switch budget tiers anytime, regenerate a fresh 21-meal combination, click any meal for its recipe, or log an entire day in one click.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn ${tier === 'Low' ? 'btn-primary' : 'btn-secondary'} mini" onclick="selectProPlanTier('Low')">Low Tier (₱150–195/day)</button>
+            <button class="btn ${tier === 'Medium' ? 'btn-primary' : 'btn-secondary'} mini" onclick="selectProPlanTier('Medium')">Medium Tier (₱255–345/day)</button>
+            <button class="btn ${tier === 'High' ? 'btn-primary' : 'btn-secondary'} mini" onclick="selectProPlanTier('High')">High Tier (₱430–540/day)</button>
+            <button class="btn btn-secondary mini" onclick="regenerateProPlan()">↻ Regenerate Week</button>
           </div>
         </div>
 
         <div class="week-grid">
-          ${days.map((d, i) => {
-            const b = budgetMeals[(i * 2) % budgetMeals.length];
-            const l = budgetMeals[(i * 2 + 1) % budgetMeals.length];
-            const dn = budgetMeals[(i * 2 + 2) % budgetMeals.length];
-            const dayTotal = b.price + l.price + dn.price;
-            const daySodium = (b.sodiumMg || 300) + (l.sodiumMg || 320) + (dn.sodiumMg || 310);
-            return `
-              <div class="day-col">
+          ${schedule.map(d => `
+            <div class="day-col" style="justify-content:space-between;">
+              <div style="display:flex; flex-direction:column; gap:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <b>${d}</b>
-                  <span style="font-size:11px; color:var(--brand-bright); font-weight:700;">${money(dayTotal)}</span>
+                  <b style="font-size:14px;">${d.day}</b>
+                  <span style="font-size:11.5px; color:var(--brand-bright); font-weight:700;">${money(d.dayTotal)}</span>
                 </div>
-                <small class="muted" style="font-size:10px;">Total Na: ${daySodium}mg ✓</small>
-                <div class="day-meal" onclick="openRecipe('${b.id}')">
-                  <small class="muted" style="display:block; font-size:10px;">Breakfast · ${money(b.price)}</small>
-                  <b>${esc(cleanMealName(b.name).slice(0, 22))}</b>
+                <small class="muted" style="font-size:10.5px;">Na: ${d.daySodium}mg ✓ · Prot: ${d.dayProtein}g</small>
+                <div class="day-meal" onclick="openRecipe('${d.b.id}')" title="Click for palengke recipe">
+                  <small class="muted" style="display:block; font-size:10px;">Breakfast · ${money(d.b.price)}</small>
+                  <b>${esc(cleanMealName(d.b.name).slice(0, 22))}</b>
                 </div>
-                <div class="day-meal" onclick="openRecipe('${l.id}')">
-                  <small class="muted" style="display:block; font-size:10px;">Lunch · ${money(l.price)}</small>
-                  <b>${esc(cleanMealName(l.name).slice(0, 22))}</b>
+                <div class="day-meal" onclick="openRecipe('${d.l.id}')" title="Click for palengke recipe">
+                  <small class="muted" style="display:block; font-size:10px;">Lunch · ${money(d.l.price)}</small>
+                  <b>${esc(cleanMealName(d.l.name).slice(0, 22))}</b>
                 </div>
-                <div class="day-meal" onclick="openRecipe('${dn.id}')">
-                  <small class="muted" style="display:block; font-size:10px;">Dinner · ${money(dn.price)}</small>
-                  <b>${esc(cleanMealName(dn.name).slice(0, 22))}</b>
+                <div class="day-meal" onclick="openRecipe('${d.dn.id}')" title="Click for palengke recipe">
+                  <small class="muted" style="display:block; font-size:10px;">Dinner · ${money(d.dn.price)}</small>
+                  <b>${esc(cleanMealName(d.dn.name).slice(0, 22))}</b>
                 </div>
+              </div>
+              <button class="btn btn-secondary mini" style="width:100%; font-size:11px; padding:5px 6px; margin-top:4px;" onclick="logFullDayPlan('${d.b.id}', '${d.l.id}', '${d.dn.id}', '${d.day}')">+ Log Full ${d.day}</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- PRO FEATURE 2: Automated Weekly Palengke Grocery List & Cost Calculator -->
+      <div class="card" style="padding: 24px;">
+        <div class="section-head compact">
+          <div>
+            <div class="eyebrow">Pro Feature 2 · Smart Wet-Market Aggregator</div>
+            <h3 style="margin-top: 3px;">Automated Weekly Palengke Grocery Checklist &amp; Cost Estimator</h3>
+            <p>Aggregated ingredients for your active ${esc(tier)} Tier 7-day meal plan. Tap any item to check it off as you shop at the palengke.</p>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="chip" style="color:var(--brand-bright); font-weight:700;">Est. Weekly Total: ${money(weekCost)}</span>
+            <button class="btn btn-primary mini" onclick="exportGroceryModal()">🖨 Print / Export Checklist</button>
+          </div>
+        </div>
+
+        <div class="grocery-grid">
+          ${groceries.map((g, idx) => {
+            const checked = !!state.checkedGrocery[g.item];
+            return `
+              <div class="grocery-item ${checked ? 'checked' : ''}" onclick="toggleGroceryItem('${esc(g.item)}')">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); toggleGroceryItem('${esc(g.item)}')" style="width:16px; height:16px; accent-color:var(--brand);" />
+                  <div>
+                    <b style="display:block; font-size:13px;">${esc(g.item)}</b>
+                    <small class="muted" style="font-size:11.5px;">${g.count}x weekly portions (${esc(g.portion)} each)</small>
+                  </div>
+                </div>
+                <b style="color:var(--brand-bright); font-size:13px;">${money(g.totalCost)}</b>
               </div>
             `;
           }).join('')}
         </div>
       </div>
 
+      <!-- PRO FEATURE 3: Interactive Clinical Kidney & Blood Pressure Risk Calculator -->
+      <div class="card" style="padding: 24px;">
+        <div class="section-head compact">
+          <div>
+            <div class="eyebrow">Pro Feature 3 · Preventive Nephrology &amp; Financial Simulator</div>
+            <h3 style="margin-top: 3px;">Interactive Kidney Protection &amp; Dialysis Risk Savings Calculator</h3>
+            <p>Simulate how switching from high-sodium fast food and instant noodles to ByteBite Pro meals protects your kidneys and wallet over 12 months.</p>
+          </div>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 12px;">
+          <div class="field">
+            <label>1. Weekly Fast-Food / Instant Noodle Meals</label>
+            <select onchange="updateRiskCalculator('fastFood', this.value)">
+              <option value="0" ${ff === 0 ? 'selected' : ''}>0–1 times / week (Minimal Risk)</option>
+              <option value="1" ${ff === 1 ? 'selected' : ''}>1–2 times / week (ByteBite Pro Target)</option>
+              <option value="3" ${ff === 3 ? 'selected' : ''}>3–4 times / week (Moderate Renal Strain)</option>
+              <option value="6" ${ff === 6 ? 'selected' : ''}>6+ times / week (High Dialysis Risk)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>2. Daily Water Hydration Intake</label>
+            <select onchange="updateRiskCalculator('water', this.value)">
+              <option value="5" ${waterG === 5 ? 'selected' : ''}>4–5 glasses / day (Under-hydrated)</option>
+              <option value="7" ${waterG === 7 ? 'selected' : ''}>6–7 glasses / day (Moderate)</option>
+              <option value="8" ${waterG === 8 ? 'selected' : ''}>8–9 glasses / day (DOH Optimal Flush)</option>
+              <option value="10" ${waterG === 10 ? 'selected' : ''}>10+ glasses / day (Active Hydration)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>3. Primary Seasoning Habit</label>
+            <select onchange="updateRiskCalculator('salt', this.value)">
+              <option value="low" ${saltHabit === 'low' ? 'selected' : ''}>Calamansi, Garlic &amp; Ginger (ByteBite Style)</option>
+              <option value="mod" ${saltHabit === 'mod' ? 'selected' : ''}>Standard Table Salt &amp; Soy Sauce</option>
+              <option value="high" ${saltHabit === 'high' ? 'selected' : ''}>Heavy Patis, Bagoong &amp; MSG Sachets</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="kpi-strip" style="margin-top: 16px;">
+          <div class="kpi-card" style="background:var(--bg);">
+            <div class="kpi-label"><span>Kidney Protection Score</span><span>Target: 85+</span></div>
+            <div class="kpi-value" style="color:${renalScore >= 80 ? 'var(--brand-bright)' : 'var(--warn)'};">${renalScore} <span style="font-size:14px; color:var(--muted);">/ 100</span></div>
+            <div class="kpi-sub">${renalScore >= 80 ? '✓ Optimal Low-Sodium Renal Shield' : '⚠️ Reduce fast food & patis intake'}</div>
+          </div>
+          <div class="kpi-card" style="background:var(--bg);">
+            <div class="kpi-label"><span>Projected Daily Sodium</span><span>DOH Ideal: ≤1,500mg</span></div>
+            <div class="kpi-value" style="color:${estDailyNa <= 1500 ? 'var(--brand-bright)' : estDailyNa <= 2000 ? 'var(--warn)' : 'var(--danger)'};">${estDailyNa} <span style="font-size:14px; color:var(--muted);">mg/day</span></div>
+            <div class="kpi-sub">${estDailyNa <= 1500 ? 'Safely within DOH optimal zone' : 'Switch to Low-Salt Aromatics'}</div>
+          </div>
+          <div class="kpi-card" style="background:var(--bg);">
+            <div class="kpi-label"><span>Monthly Salt Prevented</span><span>vs. Commercial Diet</span></div>
+            <div class="kpi-value">${monthlyNaSavedGrams}g <span style="font-size:14px; color:var(--muted);">Na / mo</span></div>
+            <div class="kpi-sub">Equivalent to ~${Math.round(monthlyNaSavedGrams * 2.5)}g table salt avoided</div>
+          </div>
+          <div class="kpi-card" style="background:var(--bg);">
+            <div class="kpi-label"><span>Est. Annual Savings</span><span>Food + Preventive Health</span></div>
+            <div class="kpi-value" style="color:var(--brand-bright);">${money(annualPesoSaved)}</div>
+            <div class="kpi-sub">Dialysis in PH costs ₱240,000+/yr out-of-pocket</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRO FEATURE 4: Exclusive Cubao Partner Karinderya VIP Vouchers -->
+      <div class="card" style="padding: 24px;">
+        <div class="section-head compact">
+          <div>
+            <div class="eyebrow">Pro Feature 4 · Cubao Partner Kitchen Network</div>
+            <h3 style="margin-top: 3px;">Exclusive VIP Discount Vouchers at 6 Verified Cubao Kitchens</h3>
+            <p>Redeem 10%–15% off and free healthy drinks at our partner carinderias and grills around TIP QC, Araneta City, and Katipunan.</p>
+          </div>
+        </div>
+
+        <div class="voucher-grid">
+          ${vouchers.map(v => `
+            <div class="voucher-card">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
+                  <span class="voucher-discount">${esc(v.discount)}</span>
+                  <small class="muted" style="font-weight:700;">${esc(v.area)}</small>
+                </div>
+                <h4 style="margin:0 0 4px; font-size:15.5px;">${esc(v.vendor)}</h4>
+                <p class="muted" style="margin:0; font-size:12.5px; line-height:1.45;">${esc(v.perk)}</p>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px dashed var(--line);">
+                <code style="font-size:11.5px; font-weight:700; color:var(--brand-bright);">${esc(v.code)}</code>
+                <button class="btn btn-primary mini" onclick="claimProVoucher('${esc(v.vendor)}', '${esc(v.code)}', '${esc(v.discount)}', '${esc(v.perk)}')">Claim QR Pass</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- PRO FEATURE 5: Embedded Real-Time AI Scanner & Membership Comparison -->
+      ${scannerView()}
+
       <div class="pricing-grid" style="margin-top:0;">
         <div class="card pricing-card">
           <div>
-            <div class="eyebrow" style="color: var(--muted);">Standard Plan</div>
+            <div class="eyebrow" style="color: var(--muted);">Standard Free Plan</div>
             <div class="price-large">₱0 <span>/ month</span></div>
             <p class="muted" style="font-size: 13px;">Essential tools for browsing Low–High budget meals, recipes, and kidney sodium tracking.</p>
             <ul class="feature-list">
               <li><i>✓</i> Full ${state.meals.length.toLocaleString()}+ meal directory (Low ₱45–75, Med ₱80–135, High ₱140–235)</li>
               <li><i>✓</i> Itemized Philippine palengke ingredient lists &amp; cooking guides</li>
               <li><i>✓</i> Kidney &amp; Sodium Shield + Daily Hydration Tracker</li>
-              <li><i>✓</i> Cooking Reels &amp; Interactive Cubao Kitchen Map</li>
+              <li><i>✓</i> 12 Cooking Reels with Audio &amp; Interactive Cubao Kitchen Map</li>
             </ul>
           </div>
-          <button class="btn btn-secondary" style="width: 100%;" disabled>Included Free</button>
+          <button class="btn btn-secondary" style="width: 100%;" disabled>Included Free Forever</button>
         </div>
 
         <div class="card pricing-card featured">
           <div>
-            <div class="eyebrow">ByteBite Pro</div>
-            <div class="price-large">₱99 <span>/ month</span></div>
-            <p class="muted" style="font-size: 13px;">Full AI Camera Scanner, 7-day renal-safe meal schedule, and partner kitchen discounts.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="eyebrow">ByteBite Pro Membership</div>
+              <span class="pro-crown-badge">BEST VALUE · STUDENT ₱79</span>
+            </div>
+            <div class="price-large">₱99 <span>/ month (or ₱79 Student)</span></div>
+            <p class="muted" style="font-size: 13px;">Complete AI Vision Scanner, customizable 7-day meal &amp; palengke planner, risk simulator, and VIP kitchen vouchers.</p>
             <ul class="feature-list">
-              <li><i>✓</i> Real-Time AI Camera &amp; Photo Meal Plate Scanner</li>
-              <li><i>✓</i> Instant High-Sodium &amp; Dialysis Risk Alerts</li>
-              <li><i>✓</i> Automated 7-Day Kidney-Safe Budget Meal Schedule</li>
-              <li><i>✓</i> 10%–15% discount vouchers at Cubao partner kitchens</li>
-              <li><i>✓</i> Weekly sodium &amp; macronutrient health reports</li>
+              <li><i>✓</i> <b>Interactive 7-Day Meal Customizer</b> across Low, Medium &amp; High PHP Tiers + 1-Click Full Day Logging</li>
+              <li><i>✓</i> <b>Automated Weekly Palengke Grocery Checklist</b> with PHP cost totals &amp; PDF/Print export</li>
+              <li><i>✓</i> <b>Clinical Kidney &amp; Blood Pressure Risk Simulator</b> with annual medical savings projection</li>
+              <li><i>✓</i> <b>6 Cubao Partner Karinderya VIP QR Vouchers</b> (10%–15% off meals &amp; free calamansi-chia drinks)</li>
+              <li><i>✓</i> <b>Unlimited Real-Time AI Camera &amp; Photo Food Scanning</b> with instant sodium swap alerts</li>
             </ul>
           </div>
-          ${state.user?.premium
-            ? `<div class="notice" style="margin: 0; text-align: center; font-weight: 700;">✓ ByteBite Pro is Active</div>`
-            : `<button class="btn btn-primary" style="width: 100%;" onclick="activatePremium()">Activate ByteBite Pro — ₱99/mo</button>`
+          ${isPro
+            ? `<div style="display:flex; gap:8px;">
+                <div class="notice" style="margin: 0; flex:1; text-align: center; font-weight: 700;">✓ ByteBite Pro Active</div>
+                <button class="btn btn-secondary" onclick="openProCheckoutModal()">Manage Plan</button>
+               </div>`
+            : `<button class="btn btn-primary" style="width: 100%;" onclick="openProCheckoutModal()">⚡ Activate ByteBite Pro — ₱99/mo (GCash / Maya)</button>`
           }
         </div>
       </div>
@@ -2733,19 +3353,19 @@ function guidePage() {
           </div>
         </div>
 
-        <div class="card" style="background:#0c1013; border-color:rgba(34,197,94,0.3);">
+        <div class="card" style="background:var(--bg); border-color:rgba(22,163,74,0.3);">
           <div class="eyebrow">Why ByteBite Matters in the Philippines</div>
           <div style="display:grid; gap:10px; margin-top:10px; font-size:13px;">
             <div style="padding:10px 12px; border-radius:10px; background:var(--panel); border:1px solid var(--line);">
-              <b style="color:#f87171; display:block;">The Health Crisis (1 in 10 Filipinos)</b>
+              <b style="color:var(--danger); display:block;">The Health Crisis (1 in 10 Filipinos)</b>
               <span class="muted" style="font-size:12px;">Over 1 in 10 Filipino adults suffer from kidney disease due to high-salt diets. Dialysis costs over ₱20,000/month.</span>
             </div>
             <div style="padding:10px 12px; border-radius:10px; background:var(--panel); border:1px solid var(--line);">
-              <b style="color:#4ade80; display:block;">The ByteBite Solution (&lt;450mg Na / Meal)</b>
+              <b style="color:var(--brand-bright); display:block;">The ByteBite Solution (&lt;450mg Na / Meal)</b>
               <span class="muted" style="font-size:12px;">1,009+ freshly cooked Filipino meals across Low (₱45–₱75), Medium (₱80–₱135), and High (₱140–₱235) budgets.</span>
             </div>
             <div style="padding:10px 12px; border-radius:10px; background:var(--panel); border:1px solid var(--line);">
-              <b style="color:#38bdf8; display:block;">Works on Desktop &amp; Mobile</b>
+              <b style="color:#0284c7; display:block;">Works on Desktop &amp; Mobile</b>
               <span class="muted" style="font-size:12px;">Automatically adapts to any PC browser or smartphone screen with live camera scanning and GPS mapping.</span>
             </div>
           </div>
@@ -2857,11 +3477,13 @@ async function generate(e) {
   e.preventDefault();
   const fd = new FormData(e.target);
   const out = $('#genResult');
+  const q = String(fd.get('q') || '').trim().toLowerCase();
   const tier = fd.get('tier') || 'All';
   state.generatorTier = tier;
   const budget = Math.max(45, +fd.get('budget') || 135);
   const goal = fd.get('goal');
-  const dietary = fd.get('dietary');
+  const sortBy = fd.get('sort') || 'price';
+  const dietary = fd.get('dietary') || 'No preference';
 
   const matches = state.meals
     .filter(m => {
@@ -2870,19 +3492,25 @@ async function generate(e) {
       const budgetOk = m.price <= budget;
       const goalOk = goal === 'Balanced' || (m.goals || []).includes(goal);
       const dietOk = dietary === 'No preference' || (m.dietary || []).includes(dietary);
-      return tierOk && budgetOk && goalOk && dietOk;
+      const qOk = !q || `${m.name} ${m.category || ''} ${(m.tags || []).join(' ')}`.toLowerCase().includes(q);
+      return tierOk && budgetOk && goalOk && dietOk && qOk;
     })
-    .sort((a, b) => a.price - b.price || b.healthScore - a.healthScore)
+    .sort((a, b) => {
+      if (sortBy === 'sodium') return (a.sodiumMg || 320) - (b.sodiumMg || 320) || a.price - b.price;
+      if (sortBy === 'protein') return (b.protein || 0) - (a.protein || 0) || a.price - b.price;
+      if (sortBy === 'score') return (b.healthScore || 90) - (a.healthScore || 90) || a.price - b.price;
+      return a.price - b.price || (b.healthScore || 90) - (a.healthScore || 90);
+    })
     .slice(0, 15);
 
   const exampleThree = matches.slice(0, 3).reduce((s, m) => s + m.price, 0);
 
   out.innerHTML = `
     <div class="notice" style="margin-top: 0;">
-      Showing <b>${matches.length} kidney-safe meals</b> in <b>${esc(tier === 'All' ? 'All Tiers' : tier + ' Tier')}</b> up to <b>${money(budget)}</b> · 3-meal full day total starts at <b>${money(exampleThree)}</b>.
+      Showing <b>${matches.length} kidney-safe meals</b> in <b>${esc(tier === 'All' ? 'All Tiers' : tier + ' Tier')}</b> up to <b>${money(budget)}</b>${q ? ` matching "<b>${esc(q)}</b>"` : ''} · 3-meal full day total starts at <b>${money(exampleThree)}</b>.
     </div>
     <div class="grid">
-      ${matches.map(m => mealCard(m, true)).join('') || '<div class="empty full">No meals matched that filter. Try raising the max meal budget or switching to All Tiers.</div>'}
+      ${matches.map(m => mealCard(m, true)).join('') || '<div class="empty full">No meals matched that filter. Try clearing the search box, raising the max meal budget, or switching to All Tiers.</div>'}
     </div>
   `;
 }
