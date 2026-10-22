@@ -947,7 +947,8 @@ function home() {
             <a class="btn btn-primary" href="#/scanner">Scan My Food Live</a>
             <a class="btn btn-secondary" href="#/kidney">Kidney &amp; Sodium Shield</a>
             <a class="btn btn-secondary" href="#/locator">Open Live GPS Map</a>
-            <a class="btn btn-secondary" href="#/guide">How ByteBite Works</a>
+            <a class="btn btn-secondary" href="#/guide">System Guide &amp; Blueprint</a>
+            <a class="btn btn-secondary" href="./Lopez_Renier_SDGInnovation.pdf" target="_blank" rel="noopener">📄 Open SDG PDF Doc</a>
           </div>
         </div>
 
@@ -3218,9 +3219,9 @@ function guidePage() {
             <b>ByteBite PH</b> is a smart Philippine meal planner, real-time AI food scanner, and GPS kitchen locator designed to help students, workers, and families <b>eat nutritious meals on a real ₱45–₱235 budget</b> while <b>preventing Chronic Kidney Disease (CKD), dialysis, hypertension, and diabetes</b>. Instead of relying on high-sodium instant noodles, canned goods, and fast food (which pack 1,400mg–1,900mg of sodium per plate), ByteBite connects you to affordable, low-sodium Filipino dishes and nearby healthy kitchens.
           </p>
           <div class="actions">
-            <a class="btn btn-primary" href="#/generator">Start Browsing Meals (₱45+)</a>
-            <a class="btn btn-secondary" href="#/scanner">Try Live Food Scanner</a>
-            <a class="btn btn-secondary" href="#/kidney">Open Kidney Shield</a>
+            <a class="btn btn-primary" href="./Lopez_Renier_SDGInnovation.pdf" target="_blank" rel="noopener">📄 Open Official SDG PDF Document</a>
+            <a class="btn btn-secondary" href="#/generator">Browse Meals (₱45+)</a>
+            <a class="btn btn-secondary" href="#/scanner">Live AI Scanner</a>
             <button type="button" class="btn btn-secondary" onclick="openHostingModal()">Mobile QR / Cloud Link</button>
           </div>
         </div>
@@ -3309,6 +3310,96 @@ function guidePage() {
             </div>
           </article>
         `).join('')}
+      </div>
+
+      <!-- COMPLETE 9-BLOCK LEAN CANVAS GRID -->
+      <div class="card" style="padding: 24px;">
+        <div class="section-head compact">
+          <div>
+            <div class="eyebrow">Step 3 · Complete 9-Block Lean Canvas (SDG 3, SDG 2, SDG 1, SDG 12)</div>
+            <h3 style="margin-top: 3px;">ByteBite PH — 9-Block Lean Canvas Business Model</h3>
+            <p>Synchronized with our Cubao Market Sizing (TAM: 600,000 | SAM: 25,000 | SOM: 1,000 active paid subscribers/month).</p>
+          </div>
+          <a class="btn btn-primary mini" href="./Lopez_Renier_SDGInnovation.pdf" target="_blank" rel="noopener">📄 Open Full SDG PDF Document</a>
+        </div>
+
+        <div class="grid" style="margin-top: 12px;">
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">1. Problem</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              • High prevalence of <b>Chronic Kidney Disease (Dialysis), Hypertension &amp; Diabetes</b> among young adults.<br>
+              • Students rely on cheap, high-sodium instant noodles &amp; fast food (1,500–1,900mg Na/meal) due to tight ₱45–₱150 budgets.<br>
+              • Lack of visibility for affordable healthy karinderyas in Cubao, QC.
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">2. Customer Segments</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              • <b>Primary:</b> University students (TIP QC, Cubao belt) &amp; young adults.<br>
+              • <b>TAM:</b> 600,000 (Metro Manila)<br>
+              • <b>SAM:</b> 25,000 (Cubao, Quezon City)<br>
+              • <b>SOM (Basis of Q):</b> <b>1,000 paid subscribers / month</b><br>
+              • <b>Beneficiaries:</b> Local Cubao karinderyas &amp; families spared from dialysis bills.
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">3. Unique Value Proposition</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              <i>"Our product/service helps <b>university students &amp; young adults in Cubao, QC</b> achieve <b>customized, kidney-safe healthy nutrition within their real ₱45–₱235 budget</b> by <b>providing a pure digital smart meal planner, real-time AI sodium scanner, and instant GPS karinderya locator</b>."</i>
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">4. Solution</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              • <b>1,009+ Meal Finder</b> (Low ₱45–75, Med ₱80–135, High ₱140–235) + 7-Day Pro Planner.<br>
+              • <b>Live AI Camera Food Scanner</b> with high-sodium dialysis warnings &amp; swaps.<br>
+              • <b>Kidney &amp; Sodium Shield</b> (&lt;1,500mg DOH limit) + 8-glass water tracker.<br>
+              • <b>Cubao GPS Map</b> + <b>12 MP4 Cooking Reels</b> with voice narration.
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">5. Channels</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              • <b>Pure Digital Cloud Web App:</b> GitHub Pages &amp; Vercel (PC + Mobile QR handoff).<br>
+              • <b>Campus Partnerships:</b> TIP QC student orgs, clinics &amp; wellness drives.<br>
+              • <b>Karinderya QR Standees:</b> Placed at 6 partner stalls in Cubao.<br>
+              • <b>Social Video:</b> TikTok &amp; FB Cooking Reels.
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">6. Revenue Streams (1 Month)</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              • <b>Model:</b> ByteBite Pro Monthly Subscription (1 Month Only).<br>
+              • <b>Price (P):</b> <b>₱99.00 / user</b> (Penetration Pricing; ₱79 Student).<br>
+              • <b>Quantity (Q from SOM):</b> <b>1,000 subscribers</b>.<br>
+              • <b>1-Month Revenue (P × Q):</b> ₱99 × 1,000 = <b>₱99,000.00 / month</b>.
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">7. Cost Structure (1 Month)</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              • <b>Fixed Cost (Constant):</b> <b>₱25,000.00 / mo</b> (₱12k dev salary, ₱4.5k cloud, ₱4k dataset, ₱3k marketing, ₱1.5k QR kits).<br>
+              • <b>Variable Cost (₱19 × Q):</b> ₱19 × 1,000 SOM = <b>₱19,000.00 / mo</b>.<br>
+              • <b>Total 1-Month Cost:</b> <b>₱44,000.00</b> (₱44.00/user).<br>
+              • <b>1-Month Net Profit:</b> ₱99,000 − ₱44,000 = <b>₱55,000.00</b>.
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">8. Key Metrics</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              • <b>Break-Even Volume:</b> <b>313 subscribers</b> (₱25,000 FC ÷ ₱80 CM).<br>
+              • <b>SOM Target:</b> <b>1,000 active paid subscribers</b>.<br>
+              • <b>Health Metric:</b> Keeping daily sodium &le;1,500mg–2,000mg.<br>
+              • <b>Student Savings:</b> Saving ₱60–₱110/day on meals.
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <div class="eyebrow">9. Unfair Advantage</div>
+            <p class="muted" style="margin:6px 0 0; font-size:12.5px; line-height:1.5;">
+              • Hyper-localized <b>1,009-meal Cubao Karinderya &amp; Palengke Nutrition Dataset</b> mapped to real QC peso prices and DOH kidney sodium limits, paired with <b>Client-Side TensorFlow.js Edge AI</b> that keeps variable cost at only <b>₱19/user</b>.
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- HORIZONTAL LAYERED SERVICE BLUEPRINT (START TO END | FRONTEND VS BACKEND) -->
