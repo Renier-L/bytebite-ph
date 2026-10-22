@@ -3310,6 +3310,140 @@ function guidePage() {
           </article>
         `).join('')}
       </div>
+
+      <!-- HORIZONTAL LAYERED SERVICE BLUEPRINT (START TO END | FRONTEND VS BACKEND) -->
+      <div class="card" style="padding: 24px;">
+        <div class="section-head compact">
+          <div>
+            <div class="eyebrow">Horizontal Service Blueprint · Customer's Perspective (By Layer &amp; Entity)</div>
+            <h3 style="margin-top: 3px;">End-to-End Service Blueprint (Start: Enter Online Web → End: Exit Online Web)</h3>
+            <p>Horizontal flowchart organized by layer: Physical/Digital Evidence, Customer Actions, Frontend (Frontstage), Backend (Backstage), and Support Processes.</p>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto; margin-top: 12px;">
+          <table class="ing-table" style="min-width: 920px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;">
+            <thead>
+              <tr style="background: var(--panel-alt); font-size: 11.5px; font-weight: 800; color: var(--brand-bright); text-transform: uppercase;">
+                <td style="width: 165px;">Layer / Entity</td>
+                <td>Stage 1: START<br><span class="muted" style="font-size:10px;">Enter Online Web App</span></td>
+                <td>Stage 2: DISCOVER<br><span class="muted" style="font-size:10px;">Budget &amp; Meal Finder</span></td>
+                <td>Stage 3: INSPECT<br><span class="muted" style="font-size:10px;">Live AI Food Scanner</span></td>
+                <td>Stage 4: PREP / LOCATE<br><span class="muted" style="font-size:10px;">Reels &amp; GPS Map</span></td>
+                <td>Stage 5: END<br><span class="muted" style="font-size:10px;">Log, Redeem &amp; Exit Web</span></td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>1. Digital Evidence</b><br><small class="muted">Visible UI Proof</small></td>
+                <td>Live Cloud URL &amp; QR Code, PC/Mobile adaptive shell</td>
+                <td>Low (₱45–75), Med (₱80–135), High (₱140–235) Meal Cards</td>
+                <td>Live Camera HUD, Laser Scan &amp; Sodium Risk Badge</td>
+                <td>Palengke Cost Table, 12 MP4 Cooking Reels, Leaflet GPS Pins</td>
+                <td>Updated Progress Bars, Printable Grocery List, VIP QR Pass</td>
+              </tr>
+              <tr>
+                <td><b>2. Customer Actions</b><br><small class="muted">Customer Perspective</small></td>
+                <td><b>START:</b> Enters ByteBite web app on PC or phone &amp; signs in</td>
+                <td>Selects daily PHP budget &amp; Low-Sodium health goal</td>
+                <td>Scans real food plate via camera or checks Kidney Shield</td>
+                <td>Watches Cooking Reel w/ audio or clicks Locate My Real GPS</td>
+                <td><b>END:</b> Logs meal + water, claims VIP QR voucher &amp; exits web</td>
+              </tr>
+              <tr>
+                <td><b>3. Frontend (Frontstage)</b><br><small class="muted">Client UI (app.js)</small></td>
+                <td><code>syncDeviceViewport()</code> renders PC sidebar or Mobile bar</td>
+                <td><code>generator()</code> filters 1,009 meals &amp; renders cards</td>
+                <td><code>startCameraScan()</code> streams video &amp; shows swap alert</td>
+                <td><code>setupReels()</code> plays MP4 + voice; <code>initLeafletMap()</code> pins map</td>
+                <td><code>trackMeal()</code> updates bars; <code>claimProVoucher()</code> shows QR</td>
+              </tr>
+              <tr style="background: rgba(22,163,74,0.06);">
+                <td colspan="6" style="text-align:center; font-size:11px; font-weight:700; color:var(--brand-bright); padding:5px;">— LINE OF VISIBILITY (Above: Visible Frontend UI · Below: Hidden Backend &amp; Cloud Engine) —</td>
+              </tr>
+              <tr>
+                <td><b>4. Backend (Backstage)</b><br><small class="muted">Server / Cloud Logic</small></td>
+                <td><code>/api/bootstrap</code> &amp; <code>getStaticDB()</code> load profile &amp; goals</td>
+                <td>Multi-filter ranking by PHP budget tier &amp; ≤450mg sodium</td>
+                <td><code>classifyImageElement()</code> runs TensorFlow.js MobileNet v2</td>
+                <td><code>haversineClient()</code> computes GPS km to 6 Cubao kitchens</td>
+                <td><code>/api/tracker/log</code> &amp; <code>saveStaticDB()</code> persist daily totals</td>
+              </tr>
+              <tr>
+                <td><b>5. Support Entities</b><br><small class="muted">DB, AI &amp; Partners</small></td>
+                <td>GitHub Pages / Vercel CDN &amp; HTTPS SSL encryption</td>
+                <td><code>db.json</code> (1,009 PH meals &amp; palengke price dataset)</td>
+                <td>TensorFlow.js CDN &amp; Open Food Facts Barcode API</td>
+                <td>OpenStreetMap Tile Servers &amp; Web Speech Synthesis API</td>
+                <td>GCash / Maya Gateway &amp; 6 Cubao Partner Karinderyas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 1-MONTH SOM PROFIT COMPUTATION, PRICING STRATEGY & COST STRUCTURE -->
+      <div class="card" style="padding: 24px;">
+        <div class="section-head compact">
+          <div>
+            <div class="eyebrow">Lean Canvas Financial Defense · 1-Month Revenue &amp; Profit Model</div>
+            <h3 style="margin-top: 3px;">1-Month SOM Profit Computation, Pricing Strategy &amp; Cost Reduction</h3>
+            <p>Based strictly on our Serviceable Obtainable Market (SOM = 1,000 active paid subscribers in Cubao, Quezon City for 1 Month).</p>
+          </div>
+        </div>
+
+        <div class="kpi-strip" style="margin-top: 12px;">
+          <div class="kpi-card" style="background:var(--bg);">
+            <div class="kpi-label"><span>1-Month Revenue (P × Q)</span><span>SOM Q = 1,000</span></div>
+            <div class="kpi-value" style="color:var(--brand-bright);">₱99,000</div>
+            <div class="kpi-sub">₱99.00 Price × 1,000 SOM Subscribers</div>
+          </div>
+          <div class="kpi-card" style="background:var(--bg);">
+            <div class="kpi-label"><span>1-Month Fixed Cost</span><span>Constant</span></div>
+            <div class="kpi-value">₱25,000</div>
+            <div class="kpi-sub">Dev retainer, hosting, dataset &amp; marketing</div>
+          </div>
+          <div class="kpi-card" style="background:var(--bg);">
+            <div class="kpi-label"><span>1-Month Variable Cost</span><span>₱19 × 1,000 SOM</span></div>
+            <div class="kpi-value">₱19,000</div>
+            <div class="kpi-sub">API queries, alerts &amp; GCash/Maya gateway</div>
+          </div>
+          <div class="kpi-card" style="background:var(--bg);">
+            <div class="kpi-label"><span>1-Month Net Profit</span><span>Rev − Total Cost</span></div>
+            <div class="kpi-value" style="color:var(--brand-bright);">₱55,000</div>
+            <div class="kpi-sub">₱99,000 Rev − ₱44,000 Total Cost (BEP: 313)</div>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top: 16px;">
+          <div class="card" style="background:var(--bg);">
+            <h4 style="margin:0 0 6px; color:var(--brand-bright);">1. Market Sizing &amp; Profit Formula</h4>
+            <p class="muted" style="margin:0; font-size:12.5px; line-height:1.55;">
+              • <b>TAM:</b> 600,000 Metro Manila students/young adults<br>
+              • <b>SAM:</b> 25,000 Cubao, QC students/young adults<br>
+              • <b>SOM (Quantity Q):</b> <b>1,000 paid subscribers / month</b><br>
+              • <b>1-Month Revenue:</b> ₱99 × 1,000 = <b>₱99,000.00</b><br>
+              • <b>1-Month Total Cost:</b> ₱25,000 Fixed + ₱19,000 Variable = <b>₱44,000.00</b> (₱44/user)<br>
+              • <b>1-Month Net Profit:</b> ₱99,000 − ₱44,000 = <b>₱55,000.00</b>
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <h4 style="margin:0 0 6px; color:var(--brand-bright);">2. Pricing Strategy (Why ₱99.00/mo?)</h4>
+            <p class="muted" style="margin:0; font-size:12.5px; line-height:1.55;">
+              • <b>Primary Strategy:</b> <b>Penetration Pricing Strategy</b> backed by a <b>Cost-Based Floor</b>.<br>
+              • <b>How Derived:</b> Our total unit cost at 1,000 SOM is <b>₱44.00/user</b> (₱25 fixed + ₱19 variable). Pricing at <b>₱99.00/mo</b> (just ₱3.30/day, under the ₱100 psychological barrier) is 80% cheaper than foreign apps (₱499/mo), enabling rapid student adoption while yielding an <b>₱80.00/user Contribution Margin (80.8%)</b>.
+            </p>
+          </div>
+          <div class="card" style="background:var(--bg);">
+            <h4 style="margin:0 0 6px; color:var(--brand-bright);">3. How to Lower Cost &amp; Maximize Profit</h4>
+            <p class="muted" style="margin:0; font-size:12.5px; line-height:1.55;">
+              • <b>Client-Side Edge AI:</b> Running TensorFlow.js inside the user's browser cuts cloud GPU variable costs by 60%.<br>
+              • <b>Open-Source &amp; Static Cloud:</b> Using OpenStreetMap + GitHub Pages/Vercel eliminates map and server licensing fees.<br>
+              • <b>Profit Maximization:</b> Since Fixed Cost stays at ₱25,000, every user above 313 Break-Even adds <b>₱80.00 pure profit</b>.
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
   `);
 }
